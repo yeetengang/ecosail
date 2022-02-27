@@ -4,8 +4,10 @@ import 'package:ecosail/pages/charts_page.dart';
 import 'package:ecosail/pages/dashboard_page.dart';
 import 'package:ecosail/pages/interpolation_maps_page.dart';
 import 'package:ecosail/pages/location_page.dart';
+import 'package:ecosail/pages/notification_page.dart';
 import 'package:ecosail/pages/sailboat_register_page.dart';
 import 'package:ecosail/widgets/custom_app_bar.dart';
+import 'package:ecosail/widgets/notification_api.dart';
 import 'package:ecosail/widgets/responsive_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:sliding_sheet/sliding_sheet.dart';
@@ -23,7 +25,6 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
 
   int currentIndex = 0;
   String _selectedSailboat = '';
-  int _selectedIndex = 0;
 
   //A function for on click the tab
   void onTap(int index) {
@@ -36,11 +37,26 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
   void initState() {
     super.initState();
     _selectedSailboat = widget.dataList[0].boatID;
+
+    NotificationApi.init();
+    listenNotifications();
+  }
+
+  void listenNotifications() =>
+    NotificationApi.onNotifications.stream.listen(onClickNotification);
+
+  void onClickNotification(String? payload) {
+    Navigator.push(
+      context, 
+      PageRouteBuilder(pageBuilder: (_, __, ___) => NotificationPage()), //use MaterialPageRoute for animation
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final Size screenSize = MediaQuery.of(context).size;
+
+    //_checkSensorValue(widget.dataList);
 
     return Scaffold(
       appBar: PreferredSize(
@@ -216,5 +232,55 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
       }
     });
     return sailboat;
+  }
+
+  void _checkSensorValue(List<Data> dataList) {
+    // Only the new sensor data will get notify
+    double sensorLowerSecondLimit = 0.0; //Lowest Value
+    double sensorUpperSecondLimit = 0.0; //Highest Value
+    double sensorValue = 0.0;
+    bool notify = false;
+    List<String> sensorName = ['temp', 'tur', 'pH', 'EC', 'DO'];
+    
+    for(var i = 0; i< sensorName.length; i++) {
+      switch (sensorName[i]) {
+        case 'temp':
+          sensorLowerSecondLimit = 0.0;
+          sensorUpperSecondLimit = 40.0;
+          sensorValue = dataList[0].temp;
+          break;
+        case 'tur':
+          sensorLowerSecondLimit = 300.0;
+          sensorUpperSecondLimit = 2400.0;
+          sensorValue = dataList[0].turbidity;
+          break;
+        case 'pH':
+          sensorLowerSecondLimit = 3.0;
+          sensorUpperSecondLimit = 12.0;
+          sensorValue = dataList[0].pH;
+          break;
+        case 'EC':
+          sensorLowerSecondLimit = 0.0;
+          sensorUpperSecondLimit = 80.0;
+          sensorValue = dataList[0].eC;
+          break;
+        case 'DO':
+          // Need adjust, it is between 4 to 7 normal
+          sensorLowerSecondLimit = 0.0;
+          sensorUpperSecondLimit = 40.0;
+          sensorValue = dataList[0].dO;
+          break;
+      }
+
+      if (sensorValue <= sensorLowerSecondLimit || sensorValue > sensorUpperSecondLimit) {
+        // In Development stage usually turbidity will be notify
+        NotificationApi.showNotification(
+          title: 'Ecosail',
+          body: 'Water pollution',
+          payload: 'test'
+        );
+        break;
+      }
+    }
   }
 }

@@ -1,5 +1,6 @@
 import 'package:ecosail/gateway.dart';
 import 'package:ecosail/others/colors.dart';
+import 'package:ecosail/pages/notification_page.dart';
 import 'package:ecosail/pages/sensor_calibration_page.dart';
 import 'package:ecosail/pages/user_profile_page.dart';
 import 'package:ecosail/widgets/app_large_text.dart';
@@ -48,13 +49,10 @@ class _CustomAppBarState extends State<CustomAppBar> {
               highlightColor: Colors.transparent, 
               iconSize: 30, 
               onPressed: () {
-                print(widget.currentPage);
-                if (widget.currentPage != 'calibration' && widget.currentPage != 'profile') {
-                  Navigator.push(
-                    context, 
-                    PageRouteBuilder(pageBuilder: (_, __, ___) => SensorCalibratePage(dataList: widget.dataList)), //use MaterialPageRoute for animation
-                  );
-                }
+                Navigator.push(
+                  context, 
+                  PageRouteBuilder(pageBuilder: (_, __, ___) => SensorCalibratePage(dataList: widget.dataList)), //use MaterialPageRoute for animation
+                );
               },
             ),
             const SizedBox(width: 3,),
@@ -65,7 +63,10 @@ class _CustomAppBarState extends State<CustomAppBar> {
               highlightColor: Colors.transparent,
               iconSize: 30, 
               onPressed: () {
-                
+                Navigator.push(
+                  context, 
+                  PageRouteBuilder(pageBuilder: (_, __, ___) => NotificationPage()), //use MaterialPageRoute for animation
+                );
               },
             ),
             const SizedBox(width: 3,),
@@ -76,13 +77,10 @@ class _CustomAppBarState extends State<CustomAppBar> {
               highlightColor: Colors.transparent,
               iconSize: 30, 
               onPressed: () {
-                if (widget.currentPage != 'profile' && widget.currentPage != 'calibration') {
-                  //When user not locating at profile/notification/calibration page, they can do this
-                  Navigator.push(
-                    context, 
-                    PageRouteBuilder(pageBuilder: (_, __, ___) => UserProfile(dataList: widget.dataList)), //use MaterialPageRoute for animation
-                  );
-                }
+                Navigator.push(
+                  context, 
+                  PageRouteBuilder(pageBuilder: (_, __, ___) => UserProfile(dataList: widget.dataList)), //use MaterialPageRoute for animation
+                );
               },
             ),
           ],

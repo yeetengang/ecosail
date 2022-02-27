@@ -23,7 +23,6 @@ class _InnerAppBarState extends State<InnerAppBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 30),
       decoration: BoxDecoration(
         color: AppColors.mainColor,
         boxShadow: [
@@ -36,12 +35,26 @@ class _InnerAppBarState extends State<InnerAppBar> {
         ]
       ),
       child: SafeArea(
-        child: Row(
+        child: Stack(
+          alignment: Alignment.center,
           children: [
-            AppLargeText(text: "Ecosail"),
-            Expanded(child: Container()),
+            Container(),
+            AppLargeText(text: "Ecosail", textAlign: TextAlign.center,),
+            Positioned(
+              left: 15.0,
+              child: IconButton(
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                icon: const Icon(Icons.arrow_back), 
+                iconSize: 30.0,
+                color: AppColors.btnColor2,
+                onPressed: () {
+                  Navigator.pop(context);
+                }, 
+              )
+            ),
           ],
-        ),
+        )
       ),
     );
   }

@@ -2,16 +2,45 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:ecosail/bottom_nav_screen.dart';
+import 'package:ecosail/pages/notification_page.dart';
 import 'package:ecosail/pages/welcome_page.dart';
 import 'package:ecosail/gateway.dart';
+import 'package:ecosail/widgets/notification_api.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
+// Use GET method to get sensor Data
 Future<Gateway> fetchGateway() async {
   final response = await http
       .get(Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/ecosail_getsensor')
         ,headers: {"Accept":"application/json"});
 
+  if (response.statusCode == 200) {
+    return Gateway.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Failed to load gateway');
+  }
+}
+
+// Use POST method to get sensor Data
+Future<Gateway> getSensorData(String userID, String boatID) async{
+  String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+  String datetime = DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now());
+  String status = "Get All";
+
+  final response = await http.post(
+    Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
+    headers: <String, String>{
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode(<String, String>{
+      'userID': userID.toString(),
+      'status': status,
+      'boatID': boatID
+    }),
+  );
+  
   if (response.statusCode == 200) {
     return Gateway.fromJson(jsonDecode(response.body));
   } else {
@@ -60,18 +89,31 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    futureGateway = fetchGateway(); //Avoid empty datalist during init
-    /*Timer.periodic(Duration(milliseconds: 5000), (t) {
+    //futureGateway = fetchGateway(); //Avoid empty datalist during init
+    futureGateway = getSensorData("123", "0xb827eb9b91d2");
+    Timer.periodic(Duration(milliseconds: 5000), (t) {
       setState(() {
-        futureGateway = fetchGateway();
+        futureGateway = getSensorData("123", "0xb827eb9b91d2");
       });
-    });*/
+    });
+    NotificationApi.init();
+    listenNotifications();
   }
 
   @override
   void dispose() {
     t.cancel();
     super.dispose();
+  }
+
+  void listenNotifications() =>
+    NotificationApi.onNotifications.stream.listen(onClickNotification);
+
+  void onClickNotification(String? payload) {
+    Navigator.push(
+      context, 
+      PageRouteBuilder(pageBuilder: (_, __, ___) => NotificationPage()), //use MaterialPageRoute for animation
+    );
   }
 
   @override
@@ -120,6 +162,7 @@ class _MyHomePageState extends State<MyHomePage> {
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 print('test');
+                //_checkSensorValue(snapshot.data!.data); // Put this here to allow every page can receive notification
                 return BottomNavScreen(dataList: snapshot.data!.data,);
                 //return Text(snapshot.data!.data.length.toString());
               } 
@@ -133,6 +176,56 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ), //Bottom Nav Screen handle all the pages inside
     );
+  }
+
+  void _checkSensorValue(List<Data> dataList) {
+    // Only the new sensor data will get notify
+    double sensorLowerSecondLimit = 0.0; //Lowest Value
+    double sensorUpperSecondLimit = 0.0; //Highest Value
+    double sensorValue = 0.0;
+    bool notify = false;
+    List<String> sensorName = ['temp', 'tur', 'pH', 'EC', 'DO'];
+    
+    for(var i = 0; i< sensorName.length; i++) {
+      switch (sensorName[i]) {
+        case 'temp':
+          sensorLowerSecondLimit = 0.0;
+          sensorUpperSecondLimit = 40.0;
+          sensorValue = dataList[0].temp;
+          break;
+        case 'tur':
+          sensorLowerSecondLimit = 300.0;
+          sensorUpperSecondLimit = 2400.0;
+          sensorValue = dataList[0].turbidity;
+          break;
+        case 'pH':
+          sensorLowerSecondLimit = 3.0;
+          sensorUpperSecondLimit = 12.0;
+          sensorValue = dataList[0].pH;
+          break;
+        case 'EC':
+          sensorLowerSecondLimit = 0.0;
+          sensorUpperSecondLimit = 80.0;
+          sensorValue = dataList[0].eC;
+          break;
+        case 'DO':
+          // Need adjust, it is between 4 to 7 normal
+          sensorLowerSecondLimit = 0.0;
+          sensorUpperSecondLimit = 40.0;
+          sensorValue = dataList[0].dO;
+          break;
+      }
+
+      if (sensorValue <= sensorLowerSecondLimit || sensorValue > sensorUpperSecondLimit) {
+        // In Development stage usually turbidity will be notify
+        NotificationApi.showNotification(
+          title: 'Ecosail',
+          body: 'Water pollution',
+          payload: 'test'
+        );
+        break;
+      }
+    }
   }
 }
 

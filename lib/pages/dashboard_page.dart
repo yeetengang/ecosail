@@ -160,6 +160,7 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
         sensorUpperSecondLimit = 80.0;
         break;
       case 'Dissolved\nOxygen':
+        // Need adjust, it is between 4 to 7 normal
         sensorUnit = 'mg/L';
         sensorLowerSecondLimit = 0.0;
         sensorLowerFirstLimit = 3.73;
@@ -169,7 +170,7 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
       default:
         sensorUnit = '';
     }
-
+    
     if (sensorData <= sensorLowerSecondLimit || sensorData >= sensorUpperSecondLimit) {
       sensorValueColor = Colors.red;
     } else if ((sensorData >= sensorLowerSecondLimit && sensorData < sensorLowerFirstLimit) ||

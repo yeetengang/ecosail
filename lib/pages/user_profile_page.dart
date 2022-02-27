@@ -2,7 +2,7 @@ import 'package:ecosail/gateway.dart';
 import 'package:ecosail/others/colors.dart';
 import 'package:ecosail/pages/view_sailboat_page.dart';
 import 'package:ecosail/widgets/app_large_text.dart';
-import 'package:ecosail/widgets/custom_app_bar.dart';
+import 'package:ecosail/widgets/inner_app_bar.dart';
 import 'package:ecosail/widgets/responsive_btn.dart';
 import 'package:flutter/material.dart';
 
@@ -18,7 +18,7 @@ class UserProfile extends StatelessWidget {
       backgroundColor: AppColors.pageBackground,
       appBar: PreferredSize(
         preferredSize: Size(screenSize.width, 60),
-        child: CustomAppBar(dataList: dataList, currentPage: 'profile',),
+        child: InnerAppBar(currentPage: 'profile',),
       ),
       body: Row(
         mainAxisAlignment: MainAxisAlignment.center,

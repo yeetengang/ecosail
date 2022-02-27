@@ -37,7 +37,7 @@ Future<String> uploadLocation(String boatID, double latitude, double longitude, 
     //return LocationData.fromJson(jsonDecode(response.body));
     return "ok";
   } else {
-    throw Exception('Failed to create album.');
+    throw Exception('Failed to add location.');
   }
 }
 
@@ -63,6 +63,7 @@ class _MapAppState extends State<MapApp> {
   Future<String>? _futureLocation;
   MapController _mapController = MapController();
   List<DragMarker> _markers = [];
+  late double zoomValue;
   late LatLng centerPosition;
   late LatLng dragUpdatePosition;
   late LatLng sailboatPosition;
@@ -108,7 +109,10 @@ class _MapAppState extends State<MapApp> {
           options: MapOptions(
             allowPanningOnScrollingParent: false,
             center: sailboatPosition, 
-            onPositionChanged: (mapPosition, moved) { centerPosition = mapPosition.center!; }, //Get the camera center? position
+            onPositionChanged: (mapPosition, moved) { 
+              centerPosition = mapPosition.center!; 
+              zoomValue = mapPosition.zoom!;
+            }, //Get the camera center? position
             onMapCreated: (c) {
               _mapController = c;
             },
@@ -123,7 +127,8 @@ class _MapAppState extends State<MapApp> {
             },
             //onMapCreated: 
           ),
-          layers: [
+          //layers: [
+          nonRotatedLayers: [
             TileLayerOptions(
               urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
               subdomains: ['a', 'b', 'c'],
@@ -177,7 +182,7 @@ class _MapAppState extends State<MapApp> {
                         setState(() {
                           _editable = true;
                           _createNewMarker(centerPosition);
-                          _mapController.move(centerPosition, 18.0);
+                          _mapController.move(centerPosition, zoomValue);
                           dragUpdatePosition = centerPosition;
                         });
                       }else {
