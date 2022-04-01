@@ -23,32 +23,37 @@ class NotificationDetailsPage extends StatefulWidget {
 
 class _NotificationDetailsPageState extends State<NotificationDetailsPage> {
   List<DragMarker> _markers = [];
-  double latitude = 5.4305;
-  double longitude = 100.3304;
-  LatLng pointer = LatLng(5.4305, 100.3304);
+  late LatLng pointer;
+  
 
   @override
   void initState() {
     super.initState();
-
     pointer = LatLng(widget.details.latitude, widget.details.longitude);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Size screenSize = MediaQuery.of(context).size;
+    
+    print(pointer.latitude);
 
     _markers.add(
       DragMarker(
         point: pointer,
-        width: 150.0,
+        width: 200.0,
         height: 100.0,
         offset: Offset(0.0, -8.0),
         builder: (ctx) => Column(
           children: [
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
+              padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
               margin: EdgeInsets.only(bottom: 10.0),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(40),
                 color: Colors.white,
               ),
-              child: Text(latitude.toString() + ', ' + longitude.toString()),
+              child: Text(pointer.latitude.toString() + ', ' + pointer.longitude.toString()),
             ),
             Icon(
               Icons.location_on, 
@@ -61,13 +66,8 @@ class _NotificationDetailsPageState extends State<NotificationDetailsPage> {
         updateMapNearEdge: false,
       ),
     );
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    final Size screenSize = MediaQuery.of(context).size;
-    List<DragMarker> _markers = [];
-    
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: PreferredSize(
@@ -77,13 +77,13 @@ class _NotificationDetailsPageState extends State<NotificationDetailsPage> {
       body: CustomScrollView(
         physics: ClampingScrollPhysics(),
         slivers: <Widget>[
-          _buildHeader(screenSize.height, context),
+          _buildHeader(screenSize.height, context, pointer),
         ],
       ),
     );
   }
 
-  SliverToBoxAdapter _buildHeader(double screenHeight, BuildContext context) {
+  SliverToBoxAdapter _buildHeader(double screenHeight, BuildContext context, LatLng _pointer) {
     return SliverToBoxAdapter(
       child: Container(
         padding: const EdgeInsets.only(top: 20.0, bottom: 10.0),
@@ -105,8 +105,9 @@ class _NotificationDetailsPageState extends State<NotificationDetailsPage> {
               child: FlutterMap(
                 options: MapOptions(
                   allowPanningOnScrollingParent: false,
-                  center: pointer, 
-                  zoom: 14.0,
+                  onPositionChanged: (mapPostion, moved) {null;},
+                  center: _pointer, 
+                  zoom: 18.0,
                   plugins: [
                     DragMarkerPlugin(),
                   ],
@@ -200,25 +201,25 @@ class _NotificationDetailsPageState extends State<NotificationDetailsPage> {
     double sensorUpperSecondLimit = 0.0; //Highest Value
     switch (sensorName) {
       case 'temp':
-        sensorLowerSecondLimit = 0.0;
-        sensorUpperSecondLimit = 40.0;
+        sensorLowerSecondLimit = 15.0;
+        sensorUpperSecondLimit = 26.0;
         break;
       case 'tur':
-        sensorLowerSecondLimit = 300.0;
-        sensorUpperSecondLimit = 2400.0;
+        sensorLowerSecondLimit = 0.0;
+        sensorUpperSecondLimit = 2000.0;
         break;
       case 'pH':
-        sensorLowerSecondLimit = 3.0;
-        sensorUpperSecondLimit = 12.0;
+        sensorLowerSecondLimit = 5.0;
+        sensorUpperSecondLimit = 10.0;
         break;
       case 'EC':
         sensorLowerSecondLimit = 0.0;
-        sensorUpperSecondLimit = 80.0;
+        sensorUpperSecondLimit = 55.0;
         break;
       case 'DO':
         // Need adjust, it is between 4 to 7 normal
-        sensorLowerSecondLimit = 0.0;
-        sensorUpperSecondLimit = 40.0;
+        sensorLowerSecondLimit = 4.0;
+        sensorUpperSecondLimit = 12.0;
         break;
     }
     

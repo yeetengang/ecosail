@@ -1,11 +1,11 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../others/colors.dart';
 import '../widgets/app_large_text.dart';
+
+//Backup Code
 
 class MapsPage extends StatefulWidget {
   const MapsPage({ Key? key }) : super(key: key);
@@ -24,7 +24,7 @@ class _MapsPageState extends State<MapsPage> {
   @override
   Widget build(BuildContext context) {
     final Size screenSize = MediaQuery.of(context).size;
-    
+
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: CustomScrollView(
@@ -104,7 +104,6 @@ class _MapsPageState extends State<MapsPage> {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      
                       CarouselSlider.builder(
                         options: CarouselOptions(
                           height: double.infinity,
@@ -121,54 +120,15 @@ class _MapsPageState extends State<MapsPage> {
                         itemCount: parameters.length,
                         itemBuilder: (BuildContext context, itemIndex, int pageViewIndex) =>
                           //_getBarCharts(parameters[itemIndex], widget.dataList, _currentSliderValue.toInt()),
-                          /*Container(
+                          Container(
                             margin: EdgeInsets.symmetric(vertical: 7.0, horizontal: 18.0),
                             decoration: BoxDecoration(
                               image: DecorationImage(
-                                image: AssetImage('images/filename_test.png'),
+                                image: AssetImage('images/filename.png'),
                                 //fit: BoxFit.cover,
                               ),
                             ),
-                          ),*/
-                          Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Container(
-                                margin: EdgeInsets.symmetric(vertical: 14.0),
-                                height: 240,
-                                width: 240,
-                                color: Colors.blue,
-                                child: FlutterMap(
-                                  options: MapOptions(
-                                    allowPanningOnScrollingParent: false,
-                                    onPositionChanged: (mapPostion, moved) {null;},
-                                    center: LatLng(5.4305, 100.3304), 
-                                    zoom: 14.0,
-                                    plugins: [
-                                      
-                                    ],
-                                  ),
-                                  nonRotatedLayers: [
-                                    TileLayerOptions(
-                                      urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                                      subdomains: ['a', 'b', 'c'],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                width: 240,
-                                height: 240,
-                                margin: EdgeInsets.symmetric(vertical: 7.0, horizontal: 18.0),
-                                decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                    image: AssetImage('images/filename_test.png'),
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
+                          ),
                       ),
                     Row( //Left Right button row
                         mainAxisAlignment: MainAxisAlignment.center,

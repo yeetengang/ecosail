@@ -15,13 +15,14 @@ class WelcomeAppBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(
         vertical: 15, 
-        horizontal: 22),
+        horizontal: 28
+      ),
       color: AppColors.mainColor.withOpacity((scrollOffset / 350).clamp(0, 1).toDouble()),
       child: SafeArea(
         child: Row(
           children: [
-            Icon(Icons.menu, color: Colors.white, size: 30,),
-            const SizedBox(width: 20,),
+            //Icon(Icons.menu, color: Colors.white, size: 30,),
+            //const SizedBox(width: 20,),
             Row(
               children: [
                 AppLargeText(text: "EcoSail"),

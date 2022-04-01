@@ -1,18 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:ecosail/bottom_nav_screen.dart';
 import 'package:ecosail/gateway.dart';
 import 'package:ecosail/others/colors.dart';
 import 'package:ecosail/widgets/app_large_text.dart';
 import 'package:ecosail/widgets/inner_app_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
 Future<bool> uploadCalibration(String boatID, String command, int userID) async {
-  String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-  String datetime = DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now());
   String status = "Calibration";
 
   final response = await http.post(
@@ -22,10 +18,8 @@ Future<bool> uploadCalibration(String boatID, String command, int userID) async 
     },
     body: jsonEncode(<String, String>{
       'boatID': boatID,
-      'timestamp': timestamp,
       'command': command,
       'userID': userID.toString(),
-      'datetime': datetime, //'12/01/2022 14:14:05'
       'status': status,
     }),
   );
@@ -60,8 +54,10 @@ Future<CalibrationMsg> getCalibrationMsg(String boatID, String userID) async {
 
 class SensorCalibratePage extends StatefulWidget {
   final List<Data> dataList;
+  final String boatID;
+  final String userID;
 
-  const SensorCalibratePage({required this.dataList});
+  const SensorCalibratePage({required this.dataList, required this.boatID, required this.userID});
 
   @override
   _SensorCalibratePageState createState() => _SensorCalibratePageState();
@@ -74,10 +70,10 @@ class _SensorCalibratePageState extends State<SensorCalibratePage> {
   @override
   void initState() {
     super.initState();
-    futureCalibrationMessage = getCalibrationMsg("0xb827eb9b91d2", "123456");
+    futureCalibrationMessage = getCalibrationMsg(widget.boatID, widget.userID);
     Timer.periodic(Duration(milliseconds: 5000), (t) {
       setState(() {
-        futureCalibrationMessage = getCalibrationMsg("0xb827eb9b91d2", "123456");
+        futureCalibrationMessage = getCalibrationMsg(widget.boatID, widget.userID);
       });
     });
   }
@@ -133,8 +129,9 @@ class _SensorCalibratePageState extends State<SensorCalibratePage> {
 
   SliverToBoxAdapter _buildBody(double screenHeight, List<String> sensors, BuildContext context) {
     List<String> label = ['Sensor', 'Enter', 'Calibrate', 'Exit'];
-    List<double> left = [10.0, 10.0, 40.0, 18.0];
-    List<double> right = [20.0, 0.0, 18.0, 16.0];
+    List<double> left = [0.0, 10.0, 30.0, 18.0];
+    List<double> right = [8.0, 0.0, 18.0, 16.0];
+    String currentSensor = "";
 
     List<Container> _generateFirstRow(List<String> label){
       List<Container> containers = [];
@@ -173,7 +170,7 @@ class _SensorCalibratePageState extends State<SensorCalibratePage> {
               Container(
                 padding: EdgeInsets.symmetric(vertical: 10.0),
                 child: Text(
-                  'Sailboat Name\n' + widget.dataList[0].boatID, 
+                  'Sailboat ID\n' + widget.boatID, 
                   style: TextStyle(
                     fontWeight: FontWeight.w900, 
                     fontSize: 20.0,
@@ -182,7 +179,7 @@ class _SensorCalibratePageState extends State<SensorCalibratePage> {
                   textAlign: TextAlign.center,
                 ),
               ),
-              Row(
+              /*Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Container(
@@ -239,46 +236,66 @@ class _SensorCalibratePageState extends State<SensorCalibratePage> {
                     ),
                   ),
                 ],
-              ),
-              /*Container(
-                padding: const EdgeInsets.all(6.0),
-                margin: const EdgeInsets.only(left: 20.0, right: 20.0, top: 12.0,),
+              ),*/
+              widget.boatID == ""? Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 3.0, horizontal: 12.0),
+                margin: const EdgeInsets.only(left: 20.0, right: 20.0, top: 6.0),
                 decoration: BoxDecoration(
                   color: AppColors.btnColor2,
                   borderRadius: BorderRadius.circular(40.0)
                 ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Container(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            FutureBuilder<CalibrationMsg>(
-                              future: futureCalibrationMessage,
-                              builder: (context, snapshot) {
-                                if (snapshot.hasData) {
-                                  return Text(
-                                    snapshot.data!.messages.ph
-                                    //snapshot.data!.messages.ph + "\n" + snapshot.data!.messages.ec + "\n" + snapshot.data!.messages.dOxygen
-                                  );
-                                } 
-                                else if (snapshot.hasError) {
-                                  return Text('${snapshot.error}');
-                                }
-                                // By default, show a loading spinner.
-                                return const Text("Getting Sensor Ready...");
-                              }
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  "No sailboat selected yet",
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                  textAlign: TextAlign.center,
                 ),
-              ),*/
+              ):Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 3.0, horizontal: 12.0),
+                margin: const EdgeInsets.only(left: 20.0, right: 20.0, top: 6.0),
+                decoration: BoxDecoration(
+                  color: AppColors.btnColor2,
+                  borderRadius: BorderRadius.circular(40.0)
+                ),
+                child: FutureBuilder<CalibrationMsg>(
+                  future: futureCalibrationMessage,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return _getSensorActive(snapshot.data!.messages.date, snapshot.data!.messages.time)? snapshot.data!.messages.command == "No Calibration"? Text(
+                        "Select one sensor to calibrate",
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                        textAlign: TextAlign.center,
+                      ): snapshot.data!.messages.command.contains("PH")? Text(
+                        "pH(" + snapshot.data!.messages.ph.toString() + "): " + _getMessage(snapshot.data!.messages.message, "PH"),
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                        textAlign: TextAlign.center,
+                      ): snapshot.data!.messages.command.contains("EC")? Text(
+                        "EC(" + snapshot.data!.messages.ec.toString() + "): " + _getMessage(snapshot.data!.messages.message, "EC"),
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                        textAlign: TextAlign.center,
+                      ): snapshot.data!.messages.command.contains("DO")? Text(
+                        "DO(" + snapshot.data!.messages.dOxygen.toString() + "): " + _getMessage(snapshot.data!.messages.message, "DO"),
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                        textAlign: TextAlign.center,
+                      ): Text(
+                        "Error retrieving data",
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                        textAlign: TextAlign.center
+                      ): Text(
+                        "IoT Node has not been activated",
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                        textAlign: TextAlign.center,
+                      );
+                    } 
+                    else if (snapshot.hasError) {
+                      return Text('${snapshot.error}');
+                    }
+                    // By default, show a loading spinner.
+                    return const Text("Getting Sensor Ready...");
+                  }
+                ),
+              ),
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -296,47 +313,27 @@ class _SensorCalibratePageState extends State<SensorCalibratePage> {
                     future: futureCalibrationMessage,
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
-                        return CalibrationRow(
-                          title: "pH", 
-                          activateEnter:  _getCalibrationBtnStatus(snapshot.data!.messages.ph, "Enter"), 
-                          activateCal:  _getCalibrationBtnStatus(snapshot.data!.messages.ph, "Cal"),
-                          activateExit:  _getCalibrationBtnStatus(snapshot.data!.messages.ph, "Exit"),
-                        );
-                      } 
-                      else if (snapshot.hasError) {
-                        return Text('${snapshot.error}');
-                      }
-                      // By default, show a loading spinner.
-                      return const Text("Getting Sensor Ready...");
-                    }
-                  ),
-                  FutureBuilder<CalibrationMsg>(
-                    future: futureCalibrationMessage,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        return CalibrationRow(
-                          title: "EC", 
-                          activateEnter:  _getCalibrationBtnStatus(snapshot.data!.messages.ec, "Enter"),
-                          activateCal: _getCalibrationBtnStatus(snapshot.data!.messages.ec, "Cal"),
-                          activateExit: _getCalibrationBtnStatus(snapshot.data!.messages.ec, "Exit"),
-                        );
-                      } 
-                      else if (snapshot.hasError) {
-                        return Text('${snapshot.error}');
-                      }
-                      // By default, show a loading spinner.
-                      return const Text("Getting Sensor Ready...");
-                    }
-                  ),
-                  FutureBuilder<CalibrationMsg>(
-                    future: futureCalibrationMessage,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        return CalibrationRow(
-                          title: "DO", 
-                          activateEnter: _getSensorActive(widget.dataList[0].date, widget.dataList[0].time) || _getCalibrationBtnStatus(snapshot.data!.messages.dOxygen, "Enter"),
-                          activateCal: _getCalibrationBtnStatus(snapshot.data!.messages.dOxygen, "Cal"),
-                          activateExit: _getCalibrationBtnStatus(snapshot.data!.messages.dOxygen, "Exit"),
+                        return Column(
+                          children: [
+                            CalibrationRow( // Cal Remain + ENTERPH = Loading
+                              title: "pH", 
+                              activateEnter:  _getCalibrationBtnStatus(snapshot.data!.messages.message, "Enter") && snapshot.data!.messages.command == "No Calibration" && _getSensorActive(snapshot.data!.messages.date, snapshot.data!.messages.time), 
+                              activateCal:  _getCalibrationBtnStatus(snapshot.data!.messages.message, "Cal") && snapshot.data!.messages.command.contains("PH"),
+                              activateExit:  _getCalibrationBtnStatus(snapshot.data!.messages.message, "Exit") && snapshot.data!.messages.command.contains("PH"),
+                            ),
+                            CalibrationRow(
+                              title: "EC", 
+                              activateEnter:  _getCalibrationBtnStatus(snapshot.data!.messages.message, "Enter") && snapshot.data!.messages.command == "No Calibration" && _getSensorActive(snapshot.data!.messages.date, snapshot.data!.messages.time), 
+                              activateCal:  _getCalibrationBtnStatus(snapshot.data!.messages.message, "Cal") && snapshot.data!.messages.command.contains("EC"),
+                              activateExit:  _getCalibrationBtnStatus(snapshot.data!.messages.message, "Exit") && snapshot.data!.messages.command.contains("EC"),
+                            ),
+                            CalibrationRow(
+                              title: "DO", 
+                              activateEnter:  _getCalibrationBtnStatus(snapshot.data!.messages.message, "Enter") && snapshot.data!.messages.command == "No Calibration" && _getSensorActive(snapshot.data!.messages.date, snapshot.data!.messages.time), 
+                              activateCal:  _getCalibrationBtnStatus(snapshot.data!.messages.message, "Cal") && snapshot.data!.messages.command.contains("DO"),
+                              activateExit:  _getCalibrationBtnStatus(snapshot.data!.messages.message, "Exit") && snapshot.data!.messages.command.contains("DO"),
+                            ),
+                          ],
                         );
                       } 
                       else if (snapshot.hasError) {
@@ -348,7 +345,7 @@ class _SensorCalibratePageState extends State<SensorCalibratePage> {
                   ),
                 ]//_generateTable(sensors),
               ),
-              Container(
+              /*Container(
                 padding: EdgeInsets.only(top: 10.0),
                 child: FloatingActionButton(
                   backgroundColor: AppColors.mainColor,
@@ -363,7 +360,7 @@ class _SensorCalibratePageState extends State<SensorCalibratePage> {
                     );
                   },
                 ),
-              ),
+              ),*/
             ],
           ),
         ),
@@ -383,8 +380,10 @@ class _SensorCalibratePageState extends State<SensorCalibratePage> {
       // The Arduino there should allow user to CALPH / CALEC / CALDO again
       // When the sensor failed to calibrate, activate calibrate button to allow Calibrate or Exit
       return true;
-    } else if (message == "CalDone" && (btnType == "Exit")) {
+    } else if ((message == "CalDone7.0" && (btnType == "Exit")) || (message == "CalDone4.0" && (btnType == "Exit"))) {
       // When the sensor calibrate success, only remain the exit button
+      return true;
+    } else if ((message == "CalDone") && (btnType == "Exit" || btnType == "Cal")) {
       return true;
     } else if (message == "OnExit" && (btnType == "Exit")) {
       return true;
@@ -410,6 +409,35 @@ class _SensorCalibratePageState extends State<SensorCalibratePage> {
     }
     return true;
   }
+
+  String _getMessage(String status, String sensor) {
+    String message = "";
+    switch (status) {
+      case "EnterDone":
+        message = "Enter Calibration Mode";
+        break;
+      case "CalDone7.0":
+        message = "Calibration Success, Buffer pH 7.0, Exit to Save";
+        break;
+      case "CalDone4.0":
+        message = "Calibration Success, Buffer pH 4.0, Exit to Save";
+        break;
+      case "CalDone":
+        message = "Calibration Success, Exit to Save";
+        break;
+      case "CalError":
+        message = "Calibration Failed";
+        break;
+      case "CalRemain":
+        message = "Calibration Remained";
+        break;
+      case "ExitDone":
+        message = "Calibration Ready/Complete";
+        break;
+    }
+    return message;
+  }
+  
 }
 
 class CalibrationRow extends StatefulWidget {
@@ -453,7 +481,7 @@ class _CalibrationRowState extends State<CalibrationRow> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 28.0),
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
             child: Text(
               widget.title, 
               style: const TextStyle(
@@ -573,21 +601,33 @@ class CalibrationMsg {
 }
 
 class CalMessage {
-  String dOxygen;
-  String ph;
-  String ec;
+  String message;
+  String command;
+  double ph;
+  double ec;
+  double dOxygen;
+  String date;
+  String time;
 
   CalMessage({
-    required this.dOxygen,
+    required this.message,
+    required this.command,
     required this.ph,
     required this.ec,
+    required this.dOxygen,
+    required this.date,
+    required this.time,
   });
 
   factory CalMessage.fromJson(Map<String, dynamic> parsedJson) {
     return CalMessage(
-      dOxygen: parsedJson['do'],
+      message: parsedJson['message'],
+      command: parsedJson['command'],
       ph: parsedJson['pH'],
-      ec: parsedJson['ec']
+      ec: parsedJson['EC'],
+      dOxygen: parsedJson['DO'],
+      date: parsedJson['date'],
+      time: parsedJson['time']
     );
   }
 }

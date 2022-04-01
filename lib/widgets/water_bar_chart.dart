@@ -126,7 +126,7 @@ class WaterBarChartState extends State<WaterBarChart> {
                 const TextStyle(
                   color: Colors.grey,
                   fontWeight: FontWeight.bold,
-                  fontSize: 16.0,
+                  fontSize: 12.0,
                 ),
               );
             }),
@@ -151,12 +151,12 @@ class WaterBarChartState extends State<WaterBarChart> {
           showTitles: true,
           getTextStyles: (context, value) => const TextStyle(
             color: Colors.grey,
-            fontSize: 14.0,
+            fontSize: 12.0,
             fontWeight: FontWeight.w500
           ),
           rotateAngle: 30.0,
           getTitles: (double value) {
-            return 'Day ' + value.toInt().toString();
+            return 'Data ' + value.toInt().toString();
           },
         ),
         leftTitles: SideTitles(
@@ -165,7 +165,7 @@ class WaterBarChartState extends State<WaterBarChart> {
           showTitles: true,
           getTextStyles: (context, value) => const TextStyle(
             color: Colors.grey,
-            fontSize: 14.0,
+            fontSize: 12.0,
             fontWeight: FontWeight.w500
           ),
           getTitles: (value) {

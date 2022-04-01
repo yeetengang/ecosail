@@ -1,4 +1,4 @@
-import 'package:carousel_slider/carousel_slider.dart';
+/*
 import 'package:ecosail/gateway.dart';
 import 'package:ecosail/others/colors.dart';
 import 'package:ecosail/widgets/app_large_text.dart';
@@ -8,12 +8,8 @@ import 'package:intl/intl.dart';
 
 class DashboardPage extends StatefulWidget {
   final List<Data> dataList;
-  final String selectedboatID;
   
-  const DashboardPage({
-    required this.dataList,
-    required this.selectedboatID,
-  });
+  const DashboardPage({required this.dataList});
 
   @override
   _DashboardPageState createState() => _DashboardPageState();
@@ -21,8 +17,6 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> with TickerProviderStateMixin{
   bool sensorActive = false;
-  CarouselController sliderController = CarouselController();
-  int activeIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -81,67 +75,6 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
-            alignment: Alignment.center,
-            width: screenWidth,
-            height: 500.0,
-            child: CarouselSlider(
-              options: CarouselOptions(
-                height: double.infinity,
-                enlargeCenterPage: true,
-                viewportFraction: 1,
-                initialPage: 0,
-                onPageChanged: (index, reason) {
-                  setState(() {
-                    activeIndex = index;
-                    print(activeIndex);
-                  });
-                },
-              ),
-              items: [
-                Column(
-                  children: <Widget>[
-                    Flexible(
-                      child: Row(
-                        children: <Widget>[
-                          _buildSensorCards(screenWidth, 'Temperature', widget.dataList[0].temp),
-                          _buildSensorCards(screenWidth, 'Turbidity', widget.dataList[0].turbidity),
-                        ],
-                      ),
-                    ),
-                    Flexible(
-                      child: Row(
-                        children: <Widget>[
-                          _buildSensorCards(screenWidth, 'pH', widget.dataList[0].pH),
-                          _buildSensorCards(screenWidth, 'Electrical\nConductivity', widget.dataList[0].eC),
-                        ],
-                      ),
-                    ),
-                    Flexible(
-                      child: Row(
-                        children: <Widget>[
-                          _buildSensorCards(screenWidth, 'Dissolved\nOxygen', widget.dataList[0].dO),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
-                  alignment: Alignment.topLeft,
-                  child: Text('Predicted WQI data',),
-                ),
-                Column(
-                  children: <Widget>[
-                    _buildCurrentSailboatCard(screenHeight, widget.selectedboatID),
-                    _buildBoatDataCards(screenHeight, 'Current Location', widget.dataList),
-                    _buildBoatDataCards(screenHeight, 'Wind Direction', widget.dataList)
-                  ],
-                ),
-              ],
-            ),
-          ),
-          /*Container(
             padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
             height: 480.0,
             child: TabBarView(
@@ -184,7 +117,7 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
                 ),
               ],
             ),
-          )   */       
+          )          
         ],
       ),
     );
@@ -201,39 +134,39 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
     switch (sensorName) {
       case 'Temperature':
         sensorUnit = '°C';
-        sensorLowerSecondLimit = 15.0;
-        sensorLowerFirstLimit = 16.0;
-        sensorUpperFirstLimit = 25.0;
-        sensorUpperSecondLimit = 26.0;
+        sensorLowerSecondLimit = 0.0;
+        sensorLowerFirstLimit = 27.03;
+        sensorUpperFirstLimit = 30.13;
+        sensorUpperSecondLimit = 40.0;
         break;
       case 'Turbidity':
         sensorUnit = 'NTU';
-        sensorLowerSecondLimit = 0.0;
-        sensorLowerFirstLimit = 100.0;
-        sensorUpperFirstLimit = 1900.0;
-        sensorUpperSecondLimit = 2000.0;
+        sensorLowerSecondLimit = 300.0;
+        sensorLowerFirstLimit = 1200.0;
+        sensorUpperFirstLimit = 1800.0;
+        sensorUpperSecondLimit = 2400.0;
         break;
       case 'pH':
         sensorUnit = '';
-        sensorLowerSecondLimit = 5.0;
-        sensorLowerFirstLimit = 5.5;
-        sensorUpperFirstLimit = 9.5;
-        sensorUpperSecondLimit = 10.0;
+        sensorLowerSecondLimit = 3.0;
+        sensorLowerFirstLimit = 7.63;
+        sensorUpperFirstLimit = 7.82;
+        sensorUpperSecondLimit = 12.0;
         break;
       case 'Electrical\nConductivity':
         sensorUnit = 'ms/cm';
         sensorLowerSecondLimit = 0.0;
-        sensorLowerFirstLimit = 10.0;
-        sensorUpperFirstLimit = 45.0;
-        sensorUpperSecondLimit = 55.0;
+        sensorLowerFirstLimit = 30.0;
+        sensorUpperFirstLimit = 60.0;
+        sensorUpperSecondLimit = 80.0;
         break;
       case 'Dissolved\nOxygen':
         // Need adjust, it is between 4 to 7 normal
         sensorUnit = 'mg/L';
-        sensorLowerSecondLimit = 4.0;
-        sensorLowerFirstLimit = 4.5;
-        sensorUpperFirstLimit = 11.5;
-        sensorUpperSecondLimit = 12.0;
+        sensorLowerSecondLimit = 0.0;
+        sensorLowerFirstLimit = 3.73;
+        sensorUpperFirstLimit = 6.73;
+        sensorUpperSecondLimit = 40.0;
         break;
       default:
         sensorUnit = '';
@@ -245,7 +178,7 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
      (sensorData >= sensorUpperFirstLimit && sensorData < sensorUpperSecondLimit)) {
       sensorValueColor = Colors.orange;
     }
-  
+
     return Expanded(
       child: Container(
         margin: const EdgeInsets.all(8.0),
@@ -271,6 +204,7 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
               ),
             ),
             Container(
+              margin: EdgeInsets.symmetric(horizontal: 10.0),
               child: Row(
                 children: [
                   Text(
@@ -304,8 +238,7 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
                     _getSensorActive(widget.dataList[0].date, widget.dataList[0].time)? sensorData.toString() + ' ' : '0.00 ' ,
                     style: TextStyle(
                       color: _getSensorActive(widget.dataList[0].date, widget.dataList[0].time)? sensorValueColor : Colors.black,
-                      fontSize: 22.0,
-                      overflow: TextOverflow.visible,
+                      fontSize: 25.0,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -315,7 +248,6 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
                       sensorUnit,
                       style: TextStyle(
                         color: _getSensorActive(widget.dataList[0].date, widget.dataList[0].time)? sensorValueColor : Colors.black,
-                        overflow: TextOverflow.visible,
                         fontSize: 14.0,
                       ),
                     ),
@@ -330,11 +262,6 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
   }
 
   bool _getSensorActive(String date, String time) {
-
-    if (date == "" && time == "") {
-      return false; // If the sailboat has no data at all return sensor is not active
-    }
-
     List<String> dateSplit = date.split("/");
     List<String> timeSplit = time.split(':');
     DateTime sensorLatestDateTime = DateTime(
@@ -356,7 +283,7 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
   }
 }
 
-SizedBox _buildCurrentSailboatCard(double screenHeight, String selectedBoatID) {
+SizedBox _buildCurrentSailboatCard(double screenHeight, String boatID) {
   return SizedBox(
     height: screenHeight * 0.18,
     child: Row(
@@ -408,7 +335,7 @@ SizedBox _buildCurrentSailboatCard(double screenHeight, String selectedBoatID) {
                       'Current Sailboat',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    Text('\nName: Salboat 1' + '\nID: '+ selectedBoatID, style: TextStyle(fontSize: 12.0, height: 1.5),),
+                    Text('\nName: Salboat 1' + '\nID: '+ boatID, style: TextStyle(fontSize: 12.0, height: 1.5),),
                   ],
                 ),
               )
@@ -427,7 +354,7 @@ SizedBox _buildBoatDataCards(double screenHeight, String title, List<Data> dataL
   switch (title) {
     case 'Current Location':
       icon = Icons.location_pin;
-      data = dataList[0].latitude.toStringAsFixed(8) + '° N, '+ dataList[0].longitude.toStringAsFixed(8) + '° E';
+      data = dataList[0].latitude.toStringAsFixed(4) + '° N, '+ dataList[0].longitude.toStringAsFixed(4) + '° E';
       break;
     case 'Wind Direction':
       icon = Icons.cloud;
@@ -450,11 +377,11 @@ SizedBox _buildBoatDataCards(double screenHeight, String title, List<Data> dataL
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SizedBox(height: screenHeight * 0.215 * 0.1,),
-              Text(title, style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w600),),
+              Text(title, style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w600),),
               Expanded(child: Container(),),
               Icon(icon, color: AppColors.mainColor, size: 50.0,),
               Expanded(child: Container(),),
-              Text(data, style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w800),),
+              Text(data, style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w800),),
               SizedBox(height: screenHeight * 0.215 * 0.1,),
             ],
           ),
@@ -491,3 +418,4 @@ class _CirclePainter extends BoxPainter {
     canvas.drawCircle(offset+circleOffset, radius, _paint);
   }
 }
+*/

@@ -28,6 +28,7 @@ class Details{
   String datetime;
   String type;
   String dayName;
+  String description;
   double longitude;
   double latitude;
   double? turbidity;
@@ -42,6 +43,7 @@ class Details{
     required this.longitude,
     required this.latitude,
     required this.boatName,
+    required this.description,
     this.turbidity,
     this.temp,
     this.pH,
@@ -66,7 +68,8 @@ class Details{
       dO: parsedJson['DO'],
       datetime: parsedJson['datetime'],
       dayName: parsedJson['dayName'],
-      type: parsedJson['type']
+      type: parsedJson['type'],
+      description: parsedJson['description']
     );
   }
 }

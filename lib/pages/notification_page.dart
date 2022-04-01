@@ -12,7 +12,7 @@ import 'package:intl/intl.dart';
 
 
 // Use POST method to get sensor Data
-Future<NotificationDetails> getNotification(String userID) async{
+Future<NotificationDetails> getNotification(String userID, String boatID) async{
   String status = "Notification";
 
   final response = await http.post(
@@ -21,8 +21,8 @@ Future<NotificationDetails> getNotification(String userID) async{
       'Content-Type': 'application/json',
     },
     body: jsonEncode(<String, String>{
-      'userID': userID.toString(),
-      'boatID': "0xb827eb9b91d2",
+      'userID': userID,
+      'boatID': boatID,
       'status': status,
     }),
   );
@@ -35,7 +35,9 @@ Future<NotificationDetails> getNotification(String userID) async{
 }
 
 class NotificationPage extends StatefulWidget {
-  const NotificationPage({ Key? key }) : super(key: key);
+  final String userID;
+  final String boatID;
+  const NotificationPage({ Key? key, required this.userID, required this.boatID}) : super(key: key);
 
   @override
   _NotificationPageState createState() => _NotificationPageState();
@@ -47,18 +49,17 @@ class _NotificationPageState extends State<NotificationPage> {
   @override
   void initState() {
     super.initState();
-    futureNotification = getNotification("123456");
-    /*Timer.periodic(Duration(milliseconds: 5000), (t) {
-      setState(() {
-        futureCalibrationMessage = getCalibrationMsg("0xb827eb9b91d2", "123456");
-      });
-    });*/
+    
   }
   
   @override
   Widget build(BuildContext context) {
     final Size screenSize = MediaQuery.of(context).size;
-    
+
+    if (widget.boatID != "") {
+      futureNotification = getNotification(widget.userID, widget.boatID);
+    }
+
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       appBar: PreferredSize(
@@ -69,7 +70,7 @@ class _NotificationPageState extends State<NotificationPage> {
         physics: ClampingScrollPhysics(),
         slivers: <Widget>[
           _buildHeader(),
-          _buildBody(),
+          widget.boatID == ""? SliverToBoxAdapter(child: Container(),): _buildBody(),
         ],
       ),
     );
@@ -78,7 +79,7 @@ class _NotificationPageState extends State<NotificationPage> {
   SliverToBoxAdapter _buildHeader() {
     return SliverToBoxAdapter(
       child: Container(
-        padding: const EdgeInsets.only(left: 30.0, right: 30.0, top: 20.0, bottom: 10.0),
+        padding: const EdgeInsets.only(left: 30.0, right: 30.0, top: 20.0, bottom: 18.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -128,8 +129,16 @@ class _NotificationPageState extends State<NotificationPage> {
             return Text('${snapshot.error}');
           }
           // By default, show a loading spinner.
-          //return const CircularProgressIndicator();
-          return Container();
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                child: CircularProgressIndicator(),
+              ),
+            ],
+          );
         }
       ),
     );
@@ -151,51 +160,71 @@ class NotificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 130.0,
-      margin: const EdgeInsets.only(left: 30.0, right: 30.0, top: 12.0,),
+      margin: const EdgeInsets.only(left: 30.0, right: 30.0, bottom: 12.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: color,
         borderRadius: BorderRadius.circular(8.0)
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 20,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(8.0),
-                bottomLeft: Radius.circular(8.0)
-              ),
-            ),
-          ),
+          SizedBox(width: 20.0,),
           Expanded(
             child: Container(
-              margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+              padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(8.0),
+                  bottomRight: Radius.circular(8.0)
+                ),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Text(
-                    type,
-                    style: TextStyle(
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        type == "Water Pollution"? "Sensor Level Abnormal": type,
+                        style: TextStyle(
+                          fontSize: MediaQuery.of(context).size.width < 400? 12.0: 16.0,
+                          fontWeight: FontWeight.w500,
+                          overflow: TextOverflow.visible,
+                        ),
+                      ),
+                      Container(
+                        color: Colors.white,
+                        width: MediaQuery.of(context).size.width * 0.28,
+                        child: Text(
+                          details.dayName.split("day")[0] + " " + DateFormat.jm().format(DateFormat("hh:mm:ss").parse(details.datetime.split(" ")[1])),
+                          style: TextStyle(
+                            color: Colors.blueAccent[700],
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: -0.5,
+                            fontSize: MediaQuery.of(context).size.width < 400? 12.0: 16.0,
+                          ),
+                          textAlign: TextAlign.end,
+                        ),
+                      )
+                    ],
                   ),
                   Container(
                     padding: EdgeInsets.symmetric(vertical: 8.0),
                     child: Text(
-                      'Boat: ' + details.boatName + '\nID: ' + details.boatID,
+                      type == "Water Pollution"? 'Boat: ' + details.boatName + '\nID: ' + details.boatID + '\n' + details.description
+                        : 'Boat: ' + details.boatName + '\nID: ' + details.boatID,
                       style: TextStyle(
-                        height: 1.5
+                        height: 1.5,
+                        fontSize: MediaQuery.of(context).size.width < 400? 12.0: 14.0
                       ),
                     ),
                   ),
                   ResponsiveText(
                     text: 'See the details',
                     colors: Colors.blueAccent.shade700,
+                    size: MediaQuery.of(context).size.width < 400? 12.0: 14.0,
                     onTap: () {
                       Navigator.push(
                         context, 
@@ -212,7 +241,9 @@ class NotificationCard extends StatelessWidget {
               ),
             ),
           ),
+          /*
           Container(
+            color: Colors.white,
             padding: EdgeInsets.only(top: 20.0, right: 20.0),
             child: Text(
               details.dayName.split("day")[0] + " " + DateFormat.jm().format(DateFormat("hh:mm:ss").parse(details.datetime.split(" ")[1])),
@@ -222,43 +253,9 @@ class NotificationCard extends StatelessWidget {
                 letterSpacing: -0.5,
               ),
             ),
-          )
+          )*/
         ],
       ),
     );
-  }
-
-  bool _checkValue(double? sensorData, String sensorName) {
-    double sensorLowerSecondLimit = 0.0; //Lowest Value
-    double sensorUpperSecondLimit = 0.0; //Highest Value
-    switch (sensorName) {
-      case 'temp':
-        sensorLowerSecondLimit = 0.0;
-        sensorUpperSecondLimit = 40.0;
-        break;
-      case 'tur':
-        sensorLowerSecondLimit = 300.0;
-        sensorUpperSecondLimit = 2400.0;
-        break;
-      case 'pH':
-        sensorLowerSecondLimit = 3.0;
-        sensorUpperSecondLimit = 12.0;
-        break;
-      case 'EC':
-        sensorLowerSecondLimit = 0.0;
-        sensorUpperSecondLimit = 80.0;
-        break;
-      case 'DO':
-        // Need adjust, it is between 4 to 7 normal
-        sensorLowerSecondLimit = 0.0;
-        sensorUpperSecondLimit = 40.0;
-        break;
-    }
-    
-    if (sensorData! <= sensorLowerSecondLimit || sensorData >= sensorUpperSecondLimit) {
-      return true;
-    } 
-    
-    return false;
   }
 }

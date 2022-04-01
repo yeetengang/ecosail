@@ -1,5 +1,7 @@
 import 'package:ecosail/models/content_model.dart';
 import 'package:ecosail/others/colors.dart';
+import 'package:ecosail/pages/login_page.dart';
+import 'package:ecosail/pages/register_page.dart';
 import 'package:ecosail/widgets/app_large_text.dart';
 import 'package:ecosail/widgets/responsive_btn.dart';
 import 'package:flutter/material.dart';
@@ -54,7 +56,13 @@ class ContentHeader extends StatelessWidget {
               ),
             ),
             width: 200.0, 
-            onTap: () => print("Login Page"),
+            onTap: () {
+              //Navigator.pop(context);
+              Navigator.push(
+                context, 
+                PageRouteBuilder(pageBuilder: (_, __, ___) => LoginPage()), //use MaterialPageRoute for animation
+              );
+            },
           ),
         ),
         Positioned(
@@ -75,7 +83,12 @@ class ContentHeader extends StatelessWidget {
               ),
             ),
             colors: AppColors.btnColor2,
-            onTap: () => print("SignUP Page"),
+            onTap: () {
+              Navigator.push(
+                context, 
+                PageRouteBuilder(pageBuilder: (_, __, ___) => RegisterPage()), //use MaterialPageRoute for animation
+              );
+            },
           ),
         ),
       ],

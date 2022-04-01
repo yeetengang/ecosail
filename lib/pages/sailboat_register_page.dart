@@ -1,14 +1,17 @@
 import 'dart:convert';
 
+import 'package:ecosail/gateway.dart';
 import 'package:ecosail/others/colors.dart';
+import 'package:ecosail/pages/view_sailboat_page.dart';
 import 'package:ecosail/widgets/app_large_text.dart';
 import 'package:ecosail/widgets/inner_app_bar.dart';
 import 'package:ecosail/widgets/responsive_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:fluttertoast/fluttertoast.dart';
 
-Future<String> registerSailboat(String boatID, String boatName, int userID) async {
+Future<String> registerSailboat(String boatID, String boatName, String userID) async {
   String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
   String datetime = DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now());
   String status = "Register Sailboat";
@@ -29,14 +32,18 @@ Future<String> registerSailboat(String boatID, String boatName, int userID) asyn
   );
   if (response.statusCode == 200) {
     //return LocationData.fromJson(jsonDecode(response.body));
-    return "ok";
+    return jsonDecode(response.body)["message"];
   } else {
-    throw Exception('Failed to register sailboat. Sailboat might already registered.');
+    return "Connection Error!";
   }
 }
 
 class SailboatRegisterPage extends StatefulWidget {
-  const SailboatRegisterPage({ Key? key }) : super(key: key);
+  final List<Data> dataList;
+  final String userID;
+  final String userEmail;
+  
+  const SailboatRegisterPage({ Key? key, required this.dataList, required this.userID, required this.userEmail }) : super(key: key);
 
   @override
   _SailboatRegisterPageState createState() => _SailboatRegisterPageState();
@@ -113,11 +120,11 @@ class _SailboatRegisterPageState extends State<SailboatRegisterPage> {
                         screenSize.width * 0.7, 
                         AppColors.mainColor,
                         Colors.white,
-                        () {
+                        () async {
                           //Button to register sailboat
-                          print('test id: ' + idController.text);
-                          print('test id: ' + nameController.text);
-                          registerSailboat(idController.text, nameController.text, 123);
+                          showToast("Registering sailboat...");
+                          String message = await registerSailboat(idController.text, nameController.text, widget.userID);
+                          showToast(message);
                         }
                       ),
                     ),
@@ -130,7 +137,10 @@ class _SailboatRegisterPageState extends State<SailboatRegisterPage> {
                         Colors.black,
                         () {
                           //Button to View Registered Sailboat
-                          
+                          Navigator.push(
+                            context, 
+                            PageRouteBuilder(pageBuilder: (_, __, ___) => ViewSailboat(dataList: widget.dataList, userID: widget.userID, userEmail: widget.userEmail,)), //use MaterialPageRoute for animation
+                          );
                         }
                       ),
                     ),
@@ -210,6 +220,16 @@ class _SailboatRegisterPageState extends State<SailboatRegisterPage> {
           ),
         ),
       ),
+    );
+  }
+
+  void showToast(String text) {
+    Fluttertoast.showToast(
+      msg: text,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.grey,
+      textColor: Colors.white,
     );
   }
 }

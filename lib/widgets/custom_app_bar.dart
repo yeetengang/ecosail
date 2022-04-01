@@ -8,9 +8,12 @@ import 'package:flutter/material.dart';
 
 class CustomAppBar extends StatefulWidget with PreferredSizeWidget{
   final List<Data> dataList;
+  final String userID;
+  final String userEmail;
+  final String boatID;
   String? currentPage;
 
-  CustomAppBar({required this.dataList, this.currentPage});
+  CustomAppBar({required this.dataList, this.currentPage, required this.userID, required this.userEmail, required this.boatID});
 
   @override
   _CustomAppBarState createState() => _CustomAppBarState();
@@ -51,7 +54,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
               onPressed: () {
                 Navigator.push(
                   context, 
-                  PageRouteBuilder(pageBuilder: (_, __, ___) => SensorCalibratePage(dataList: widget.dataList)), //use MaterialPageRoute for animation
+                  PageRouteBuilder(pageBuilder: (_, __, ___) => SensorCalibratePage(dataList: widget.dataList, boatID: widget.boatID, userID: widget.userID,)), //use MaterialPageRoute for animation
                 );
               },
             ),
@@ -65,7 +68,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
               onPressed: () {
                 Navigator.push(
                   context, 
-                  PageRouteBuilder(pageBuilder: (_, __, ___) => NotificationPage()), //use MaterialPageRoute for animation
+                  PageRouteBuilder(pageBuilder: (_, __, ___) => NotificationPage(userID: widget.userID, boatID: widget.boatID,)), //use MaterialPageRoute for animation
                 );
               },
             ),
@@ -79,7 +82,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
               onPressed: () {
                 Navigator.push(
                   context, 
-                  PageRouteBuilder(pageBuilder: (_, __, ___) => UserProfile(dataList: widget.dataList)), //use MaterialPageRoute for animation
+                  PageRouteBuilder(pageBuilder: (_, __, ___) => UserProfile(dataList: widget.dataList, userID: widget.userID, userEmail: widget.userEmail,)), //use MaterialPageRoute for animation
                 );
               },
             ),

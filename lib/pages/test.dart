@@ -1,3 +1,4 @@
+/*
 import 'dart:async';
 import 'dart:convert';
 
@@ -9,14 +10,12 @@ import 'package:ecosail/pages/interpolation_maps_page.dart';
 import 'package:ecosail/pages/location_page.dart';
 import 'package:ecosail/pages/notification_page.dart';
 import 'package:ecosail/pages/sailboat_register_page.dart';
-import 'package:ecosail/sailboat.dart';
 import 'package:ecosail/widgets/custom_app_bar.dart';
 import 'package:ecosail/widgets/notification_api.dart';
 import 'package:ecosail/widgets/responsive_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:sliding_sheet/sliding_sheet.dart';
 import 'package:http/http.dart' as http;
-import 'package:fluttertoast/fluttertoast.dart';
 
 // Use POST method to get sensor Data
 Future<Gateway> getSensorData(String userID, String boatID) async{
@@ -43,10 +42,8 @@ Future<Gateway> getSensorData(String userID, String boatID) async{
 
 class BottomNavScreen extends StatefulWidget {
   //final List<Data> dataList;
-  final String userID;
-  final String userEmail;
 
-  const BottomNavScreen({Key? key, required this.userID, required this.userEmail});
+  const BottomNavScreen({Key? key});
 
   @override
   _BottomNavScreenState createState() => _BottomNavScreenState();
@@ -56,13 +53,10 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
 
   int currentIndex = 0;
   String _selectedSailboat = '';
-  String _selectedSailboatName = '';
   late Future<String> _future;
-  late Timer t = Timer(Duration(milliseconds: 10), () {});
+  late Timer t;
   late Future<Gateway> futureGateway;
   late List<Data> datalist;
-  late List<Boat> boatList;
-  late Future<Sailboat> futureSailboat;
 
   //A function for on click the tab
   void onTap(int index) {
@@ -74,11 +68,11 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
   @override
   void initState() {
     super.initState();
-    futureGateway = getSensorData(widget.userID, _selectedSailboat);
+    futureGateway = getSensorData("123", "0xb827eb9b91d2");
     Timer.periodic(Duration(milliseconds: 5000), (t) {
-        setState(() {
-          futureGateway = getSensorData(widget.userID, _selectedSailboat);
-        });
+      setState(() {
+        futureGateway = getSensorData("123", "0xb827eb9b91d2");
+      });
     });
 
     NotificationApi.init();
@@ -97,7 +91,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
   void onClickNotification(String? payload) {
     Navigator.push(
       context, 
-      PageRouteBuilder(pageBuilder: (_, __, ___) => NotificationPage(userID: widget.userID, boatID: _selectedSailboat,)), //use MaterialPageRoute for animation
+      PageRouteBuilder(pageBuilder: (_, __, ___) => NotificationPage()), //use MaterialPageRoute for animation
     );
   }
 
@@ -112,25 +106,12 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 datalist = snapshot.data!.data;
-                if (datalist[0].boatID.length > 0 && _selectedSailboat == '') {
-                  _selectedSailboat = datalist[0].boatID[0];
-                }
-                print(datalist[0].boatID.length);
-                if (datalist[0].boatID.length == 0) {
-                  _selectedSailboat = '';
-                  print(_selectedSailboat);
-                }
-
-                if (_selectedSailboat!= '') {
-                  // If there is sailboat selected
-                  bool isActive = _getSensorActive(datalist[0].date, datalist[0].time);
-                  _checkSensorValue(datalist, isActive);
-                }
-                //print("test");
+                _selectedSailboat = datalist[0].boatID;
+                //_checkSensorValue(datalist);
                 return Scaffold(
                   appBar: PreferredSize(
                     preferredSize: Size(screenSize.width, 60),
-                    child: CustomAppBar(dataList: datalist, userID: widget.userID, userEmail: widget.userEmail, boatID: _selectedSailboat,),
+                    child: CustomAppBar(dataList: datalist,),
                   ),
                   body: getPages(currentIndex),
                   bottomNavigationBar: Container(
@@ -227,17 +208,15 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
   Widget getPages(int index) {
     switch (index) {
       case 0:
-        //return DashboardPage(dataList: datalist);
-        return DashboardPage(dataList: datalist, selectedboatID: _selectedSailboat,);
+        return DashboardPage(dataList: datalist);
       case 1:
-        return LocationPage(dataList: datalist, selectedboatID: _selectedSailboat, userID: widget.userID);
+        return LocationPage(dataList: datalist);
       case 2:
         return ChartsPage(dataList: datalist);
       case 3:
         return MapsPage();
       default:
-        //return DashboardPage(dataList: datalist);
-        return DashboardPage(dataList: datalist, selectedboatID: _selectedSailboat,);
+        return DashboardPage(dataList: datalist);
     }
   }
 
@@ -249,7 +228,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
           child: Row(
             children: [
               Text(
-                datalist[0].boatID.length > 0? 'Select Sailboat': 'No Sailboat',
+                'Select Sailboat',
                 style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold,),
               ),
               Expanded(child: Container()),
@@ -259,7 +238,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
                 onTap: () {
                   Navigator.push(
                     context, 
-                    PageRouteBuilder(pageBuilder: (_, __, ___) => SailboatRegisterPage(dataList: datalist, userID: widget.userID, userEmail: widget.userEmail,)), //use MaterialPageRoute for animation
+                    PageRouteBuilder(pageBuilder: (_, __, ___) => const SailboatRegisterPage()), //use MaterialPageRoute for animation
                   );
                 }
               ),
@@ -270,26 +249,23 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
           padding: EdgeInsets.only(top: 5.0),
           shrinkWrap: true,
           primary: false,
-          itemCount: datalist[0].boatID.length,
+          itemCount: _sailboat(datalist).length,
           itemBuilder: (BuildContext context, int Index) {
             return ListTile(
               contentPadding: EdgeInsets.only(left: 40.0),
               leading: Icon(Icons.sailing, color: AppColors.pageBackground,),
-              selected: datalist[0].boatID.length > 0 ?datalist[0].boatID[Index] == _selectedSailboat:false, //If user have sailboat, auto select the first, else no need
+              selected: _sailboat(datalist)[Index] == _selectedSailboat,
               selectedTileColor: AppColors.sheetFocusColor,
               title: Text(
-                datalist[0].boatID[Index], 
+                _sailboat(datalist)[Index], 
                 style: TextStyle(
                   color: Colors.black,
                 ),
               ),
               onTap: () {
-                if (datalist[0].boatID[Index] != _selectedSailboat) {
-                  showToast("Refreshing sailboat collected data...");
-                }
                 setState(() {
                   Navigator.pop(context); //Return context when tap
-                  _selectedSailboat = datalist[0].boatID[Index];
+                  _selectedSailboat = _sailboat(datalist)[Index];
                 });
               },
             );
@@ -322,7 +298,18 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
     )
   );
 
-  void _checkSensorValue(List<Data> dataList, bool isActive) {
+  List<String> _sailboat(List<Data> dataList) {
+    List<String> sailboat = [];
+    int number;
+    dataList.forEach((data) {
+      if(!sailboat.contains(data.boatID)) {
+        sailboat.add(data.boatID);
+      }
+    });
+    return sailboat;
+  }
+
+  void _checkSensorValue(List<Data> dataList) {
     // Only the new sensor data will get notify
     double sensorLowerSecondLimit = 0.0; //Lowest Value
     double sensorUpperSecondLimit = 0.0; //Highest Value
@@ -368,7 +355,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
       }
     }
 
-    if (notify && isActive) {
+    if (notify) {
       body = body.substring(0, body.length - 2);
       NotificationApi.showNotification(
         title: 'Sensor Level Abnormal',
@@ -377,40 +364,5 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
       );
     }
   }
-
-  bool _getSensorActive(String date, String time) {
-
-    if (date == "" && time == "") {
-      return false; // If the sailboat has no data at all return sensor is not active
-    }
-
-    List<String> dateSplit = date.split("/");
-    List<String> timeSplit = time.split(':');
-    DateTime sensorLatestDateTime = DateTime(
-      int.parse(dateSplit[2]), 
-      int.parse(dateSplit[1]), 
-      int.parse(dateSplit[0]),
-      int.parse(timeSplit[0]),
-      int.parse(timeSplit[1]),
-      int.parse(timeSplit[2]),
-    );
-    DateTime deviceDateTime = DateTime.now();
-    //print('data: ' + sensorLatestDateTime.toString());
-    //print('now: ' + deviceDateTime.toString());
-    print('differences: ' + deviceDateTime.difference(sensorLatestDateTime).inSeconds.toString());
-    if (deviceDateTime.difference(sensorLatestDateTime).inSeconds >= 15) { //Usually 15 seconds, but the emulator got time delay
-      return false;
-    }
-    return true;
-  }
-
-  void showToast(String text) {
-    Fluttertoast.showToast(
-      msg: text,
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM,
-      backgroundColor: Colors.grey,
-      textColor: Colors.white,
-    );
-  }
 }
+*/

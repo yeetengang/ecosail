@@ -29,12 +29,12 @@ class Data{
   double dO;
   double temp;
   double turbidity;
-  String boatID; //The MAC Address of IoT Node
   double pH;
   double eC;
   double wind;
   String date;
   String time;
+  List<String> boatID;
 
   Data({
     required this.timestamp,
@@ -56,7 +56,7 @@ class Data{
     return Data(
       timestamp: parsedJson['timestamp'], 
       tripID: parsedJson['tripID'],
-      boatID: parsedJson['boatID'],
+      boatID: parseBoatID(parsedJson['boatID']),
       longitude: parsedJson['longitude'],
       latitude: parsedJson['latitude'],
       turbidity: parsedJson['turbidity'],
@@ -68,5 +68,10 @@ class Data{
       date: parsedJson['date'],
       time: parsedJson['time'],
     );
+  }
+
+  static List<String> parseBoatID(boatJson) {
+    List<String> boatList = new List<String>.from(boatJson);
+    return boatList;
   }
 }

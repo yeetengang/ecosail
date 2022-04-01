@@ -62,7 +62,6 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-
         primarySwatch: Colors.blue,
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
@@ -90,14 +89,14 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     //futureGateway = fetchGateway(); //Avoid empty datalist during init
-    futureGateway = getSensorData("123", "0xb827eb9b91d2");
+    /*futureGateway = getSensorData("123", "0xb827eb9b91d2");
     Timer.periodic(Duration(milliseconds: 5000), (t) {
       setState(() {
         futureGateway = getSensorData("123", "0xb827eb9b91d2");
       });
-    });
-    NotificationApi.init();
-    listenNotifications();
+    });*/
+    /*NotificationApi.init();
+    listenNotifications();*/
   }
 
   @override
@@ -106,7 +105,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  void listenNotifications() =>
+  /*void listenNotifications() =>
     NotificationApi.onNotifications.stream.listen(onClickNotification);
 
   void onClickNotification(String? payload) {
@@ -114,7 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
       context, 
       PageRouteBuilder(pageBuilder: (_, __, ___) => NotificationPage()), //use MaterialPageRoute for animation
     );
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -154,8 +153,8 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       ),*/
-      //home: WelcomePage(),
-      home: Scaffold(
+      home: WelcomePage(),
+      /*home: Scaffold(
         body: Center(
           child: FutureBuilder<Gateway>(
             future: futureGateway,
@@ -174,58 +173,8 @@ class _MyHomePageState extends State<MyHomePage> {
             }
           ),
         ),
-      ), //Bottom Nav Screen handle all the pages inside
+      ), //Bottom Nav Screen handle all the pages inside*/
     );
-  }
-
-  void _checkSensorValue(List<Data> dataList) {
-    // Only the new sensor data will get notify
-    double sensorLowerSecondLimit = 0.0; //Lowest Value
-    double sensorUpperSecondLimit = 0.0; //Highest Value
-    double sensorValue = 0.0;
-    bool notify = false;
-    List<String> sensorName = ['temp', 'tur', 'pH', 'EC', 'DO'];
-    
-    for(var i = 0; i< sensorName.length; i++) {
-      switch (sensorName[i]) {
-        case 'temp':
-          sensorLowerSecondLimit = 0.0;
-          sensorUpperSecondLimit = 40.0;
-          sensorValue = dataList[0].temp;
-          break;
-        case 'tur':
-          sensorLowerSecondLimit = 300.0;
-          sensorUpperSecondLimit = 2400.0;
-          sensorValue = dataList[0].turbidity;
-          break;
-        case 'pH':
-          sensorLowerSecondLimit = 3.0;
-          sensorUpperSecondLimit = 12.0;
-          sensorValue = dataList[0].pH;
-          break;
-        case 'EC':
-          sensorLowerSecondLimit = 0.0;
-          sensorUpperSecondLimit = 80.0;
-          sensorValue = dataList[0].eC;
-          break;
-        case 'DO':
-          // Need adjust, it is between 4 to 7 normal
-          sensorLowerSecondLimit = 0.0;
-          sensorUpperSecondLimit = 40.0;
-          sensorValue = dataList[0].dO;
-          break;
-      }
-
-      if (sensorValue <= sensorLowerSecondLimit || sensorValue > sensorUpperSecondLimit) {
-        // In Development stage usually turbidity will be notify
-        NotificationApi.showNotification(
-          title: 'Ecosail',
-          body: 'Water pollution',
-          payload: 'test'
-        );
-        break;
-      }
-    }
   }
 }
 

@@ -1,6 +1,7 @@
 import 'package:ecosail/gateway.dart';
 import 'package:ecosail/others/colors.dart';
 import 'package:ecosail/pages/view_sailboat_page.dart';
+import 'package:ecosail/pages/welcome_page.dart';
 import 'package:ecosail/widgets/app_large_text.dart';
 import 'package:ecosail/widgets/inner_app_bar.dart';
 import 'package:ecosail/widgets/responsive_btn.dart';
@@ -8,7 +9,9 @@ import 'package:flutter/material.dart';
 
 class UserProfile extends StatelessWidget {
   final List<Data> dataList;
-  const UserProfile({ Key? key, required this.dataList }) : super(key: key);
+  final String userID;
+  final String userEmail;
+  const UserProfile({ Key? key, required this.dataList, required this.userID, required this.userEmail }) : super(key: key);
   
   @override
   Widget build(BuildContext context) {
@@ -32,7 +35,7 @@ class UserProfile extends StatelessWidget {
                 color: AppColors.btnColor2,
               ),
               AppLargeText(
-                text: "username@gmail.com",
+                text: userEmail,
                 size: 24,
                 color: AppColors.btnColor2,
               ),
@@ -97,7 +100,7 @@ class UserProfile extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context, 
-                      PageRouteBuilder(pageBuilder: (_, __, ___) => ViewSailboat(dataList: dataList)), //use MaterialPageRoute for animation
+                      PageRouteBuilder(pageBuilder: (_, __, ___) => ViewSailboat(dataList: dataList, userID: userID, userEmail: userEmail,)), //use MaterialPageRoute for animation
                     );
                   }, 
                 ),
@@ -105,7 +108,14 @@ class UserProfile extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 10.0),
                 child: ResponsiveButton(
-                  onTap: () {}, 
+                  onTap: () {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (context) => WelcomePage(),
+                      ), 
+                      (route) => false,
+                    );
+                  }, 
                   widget: Container(
                     width: screenSize.width * 0.70,
                     padding: EdgeInsets.all(12.0),

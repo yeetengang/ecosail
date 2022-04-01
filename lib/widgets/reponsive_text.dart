@@ -5,6 +5,7 @@ class ResponsiveText extends StatelessWidget {
   bool? isResponsive;
   double? width;
   double? height;
+  TextAlign? testAlign;
   String text;
   double size;
   Color colors;
@@ -15,9 +16,10 @@ class ResponsiveText extends StatelessWidget {
     Key? key,
     this.width,
     this.height,
-    this.size = 22,
+    this.size = 14,
     this.colors = const Color(0xFF0277BD), //AppColors.mainColor
     this.textColor = const Color(0xFFFFFFFF),
+    this.testAlign,
     required this.text,
     required this.onTap,
     this.isResponsive = false,
@@ -42,7 +44,9 @@ class ResponsiveText extends StatelessWidget {
         style: TextStyle(
           color: colors,
           fontWeight: FontWeight.w500,
+          fontSize: size
         ),
+        textAlign: testAlign,
       ),
     );
   }

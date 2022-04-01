@@ -3,8 +3,8 @@ import 'dart:math';
 
 import 'package:ecosail/others/colors.dart';
 import 'package:ecosail/others/dragmarker.dart';
+import 'package:ecosail/previous_location.dart';
 import 'package:ecosail/widgets/responsive_btn.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:intl/intl.dart';
@@ -26,8 +26,8 @@ Future<String> uploadLocation(String boatID, double latitude, double longitude, 
     body: jsonEncode(<String, String>{
       'boatID': boatID,
       'timestamp': timestamp,
-      'latitude': latitude.toStringAsFixed(4),
-      'longitude': longitude.toStringAsFixed(4),
+      'latitude': latitude.toStringAsFixed(8),
+      'longitude': longitude.toStringAsFixed(8),
       'userID': userID.toString(),
       'datetime': datetime, //'12/01/2022 14:14:05'
       'status': status,
@@ -43,16 +43,22 @@ Future<String> uploadLocation(String boatID, double latitude, double longitude, 
 
 class MapApp extends StatefulWidget {
   LatLng pointer;
+  double boatLatitude;
+  double boatLongitude;
   String boatID;
   String lastActiveDate;
   String lastActiveTime;
+  List<LocationDataItem> locationList;
 
   MapApp({
     Key? key, 
-    required this.pointer, 
+    required this.pointer,
+    required this.boatLatitude,
+    required this.boatLongitude, 
     required this.boatID,
     required this.lastActiveDate,
     required this.lastActiveTime,
+    required this.locationList,
   }) : super(key: key);
 
   @override
@@ -68,6 +74,7 @@ class _MapAppState extends State<MapApp> {
   late LatLng dragUpdatePosition;
   late LatLng sailboatPosition;
   bool _editable = false;
+  List<LatLng> initialPoints = [];
   
   @override
   void initState() {
@@ -82,25 +89,61 @@ class _MapAppState extends State<MapApp> {
         width: 80.0,
         height: 80.0,
         offset: Offset(0.0, -8.0),
-        builder: (ctx) => Icon(
+        builder: (ctx) => widget.lastActiveDate == ""? Icon(
+          Icons.sailing, 
+          size: 0, 
+          color: Colors.transparent,
+        ): Icon(
           Icons.sailing, 
           size: 50, 
-          color: _getSailboatActive(widget.lastActiveDate, widget.lastActiveTime)? AppColors.pageBackground: Colors.blueGrey,
+          color: _getSailboatActive(widget.lastActiveDate, widget.lastActiveTime)? AppColors.pageBackground: Colors.grey,
         ),
         draggable: false, //The sailboat current location is not editable
         onDragUpdate: (details, point) {
           /*setState(() {
             dragUpdatePosition = point;
           });*/
-        }, //The Lat and Long when drag
+        }, //The Lat and Long when drags
         updateMapNearEdge: false,
       ),
     );
+
+    if (widget.locationList.length > 0) {
+      for (var items in widget.locationList) {
+        initialPoints.add(LatLng(items.latitude, items.longitude));
+        _markers.add(
+          DragMarker(
+            point: LatLng(items.latitude, items.longitude),
+            width: 80.0,
+            height: 80.0,
+            offset: Offset(0.0, -8.0),
+            builder: (ctx) => Icon(
+              Icons.location_on, 
+              size: 50, 
+              color: Colors.indigo[700],
+            ),
+            draggable: false, //The sailboat current location is not editable
+            onDragUpdate: (details, point) {
+              /*setState(() {
+                dragUpdatePosition = point;
+              });*/
+            }, //The Lat and Long when drag
+            updateMapNearEdge: false,
+          ),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     List<bool> _disabled = [false, false, false, false];
+
+    print(widget.locationList.length);
+
+    setState(() {
+      _markers[0].point = widget.pointer;
+    });
 
     return Stack(
       children: [
@@ -121,9 +164,9 @@ class _MapAppState extends State<MapApp> {
               DragMarkerPlugin(),
             ],
             onTap: (tapPosition, p) {
-              setState(() {
+              /*setState(() {
                 widget.pointer = p;
-              });
+              });*/
             },
             //onMapCreated: 
           ),
@@ -160,11 +203,14 @@ class _MapAppState extends State<MapApp> {
               margin: EdgeInsets.all(20.0),
               padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
               decoration: BoxDecoration(
-                color: AppColors.mainColor,
+                color: _editable? Colors.green : AppColors.mainColor,
                 borderRadius: BorderRadius.circular(40.0),
               ),
-              child: Text(
-                'Latitude: ' + dragUpdatePosition.latitude.toStringAsFixed(4) + '\nLongtitude: ' + dragUpdatePosition.longitude.toStringAsFixed(4) + '\nDistance: ' + _getDistance(sailboatPosition.latitude, sailboatPosition.longitude, dragUpdatePosition.latitude, dragUpdatePosition.longitude), 
+              child: _editable? Text(
+                'Latitude: ' + dragUpdatePosition.latitude.toStringAsFixed(8) + '\nLongtitude: ' + dragUpdatePosition.longitude.toStringAsFixed(8) + '\nDistance: ' + _getDistance(sailboatPosition.latitude, sailboatPosition.longitude, dragUpdatePosition.latitude, dragUpdatePosition.longitude), 
+                style: TextStyle(color: Colors.white),
+              ): Text(
+                'Latitude: ' + widget.boatLatitude.toStringAsFixed(8) + '\nLongtitude: ' + widget.boatLongitude.toStringAsFixed(8) + '\nDistance: ' + _getDistance(sailboatPosition.latitude, sailboatPosition.longitude, dragUpdatePosition.latitude, dragUpdatePosition.longitude), 
                 style: TextStyle(color: Colors.white),
               ),
             ),
@@ -181,14 +227,20 @@ class _MapAppState extends State<MapApp> {
                       if (!_editable) {
                         setState(() {
                           _editable = true;
+                          showToast("Drag red marker to set location");
                           _createNewMarker(centerPosition);
                           _mapController.move(centerPosition, zoomValue);
                           dragUpdatePosition = centerPosition;
                         });
                       }else {
                         setState(() {
-                          print(uploadLocation(widget.boatID, dragUpdatePosition.latitude, dragUpdatePosition.longitude, 123));
-                          showToast(dragUpdatePosition.latitude.toStringAsFixed(4) + ', '+ dragUpdatePosition.longitude.toStringAsFixed(4));
+                          if (widget.boatID != "") {
+                            print(uploadLocation(widget.boatID, dragUpdatePosition.latitude, dragUpdatePosition.longitude, 123));
+                            showToast(dragUpdatePosition.latitude.toStringAsFixed(8) + ', '+ dragUpdatePosition.longitude.toStringAsFixed(8));
+                          }
+                          else {
+                            showToast("You does not have any boat yet, location will not be saved");
+                          }
                           _editable = false;
                           _markers[_markers.length-1].draggable = _editable;
                           _markers[_markers.length-1].builder = (ctx) => Icon(Icons.location_on, size: 50, color: Colors.indigo[700],);
@@ -204,7 +256,12 @@ class _MapAppState extends State<MapApp> {
                   MapPageButton(
                     margin: EdgeInsets.only(bottom: 16.0), 
                     widget: Icon(Icons.my_location, color: AppColors.btnColor2,),
-                    onTap: () {},
+                    onTap: () {
+                      setState(() {
+                        //Move the camera to follow the sailboat
+                        _mapController.move(widget.pointer, 18.0);
+                      });
+                    },
                   ),
                 ],
               ),
@@ -233,7 +290,7 @@ class _MapAppState extends State<MapApp> {
         }, //The Lat and Long when drag
         updateMapNearEdge: false,
       ),
-    );  
+    );
   }
 
   void mapCreated(controller) {
@@ -275,6 +332,10 @@ class _MapAppState extends State<MapApp> {
   }
 
   bool _getSailboatActive(String date, String time) {
+    if (date == "" && time == "") {
+      return false; // If the sailboat has no data at all return sensor is not active
+    }
+
     List<String> dateSplit = date.split("/");
     List<String> timeSplit = time.split(':');
     DateTime sailboatLatestDateTime = DateTime(

@@ -15,7 +15,7 @@ class WaterLineChart2 extends StatefulWidget {
   final int barSize;
 
   final List<String> xAxisLabels = const [
-    'Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7',
+    'Data 1', 'Data 2', 'Data 3', 'Data 4', 'Data 5', 'Data 6', 'Data 7',
   ];
   
   const WaterLineChart2({ 
@@ -113,14 +113,33 @@ class _WaterLineChart2State extends State<WaterLineChart2> {
           interval: 1, //X Axis label interval
           getTextStyles: (context, value) => const TextStyle(
             color: Colors.grey,
-            fontSize: 14.0,
+            fontSize: 12.0,
             fontWeight: FontWeight.w500
           ),
           rotateAngle: 30.0,
           getTitles: (value) {
-            if (value != 0 && value != 8) {
-              return 'Day ' + value.toInt().toString();
+            // Display of x Axis
+            print(widget.dataList.length);
+            if (value != 0) {
+              if (widget.dataList.length == 60) {
+                if (value == 10 || value == 20 || value == 30 || value == 40 || value == 50 || value == 60) {
+                  return 'Data ' + value.toInt().toString(); 
+                }
+              } else if (widget.dataList.length == 33 || widget.dataList.length == 46) {
+                if (value%5 == 0) {
+                  return 'Data ' + value.toInt().toString(); 
+                }
+              } else if (widget.dataList.length == 20) {
+                if (value%2 == 0) {
+                  return 'Data ' + value.toInt().toString(); 
+                }
+              } else if (widget.dataList.length <= 20) {
+                return 'Data ' + value.toInt().toString();
+              }
             }
+            /*if (value != 0 && value != 8) {
+              return 'Data ' + value.toInt().toString();
+            }*/
             return '';
           },
         ),
@@ -169,7 +188,7 @@ class _WaterLineChart2State extends State<WaterLineChart2> {
     reservedSize: widget.reservedSize,
     getTextStyles: (context, value) => const TextStyle(
       color: Colors.grey,
-      fontSize: 14.0,
+      fontSize: 12.0,
       fontWeight: FontWeight.w500
     ),
   );

@@ -51,7 +51,7 @@ class _WelcomePageState extends State<WelcomePage> {
             child: ContentHeader(featuredContent: ecosailContent),
           ),
           SliverPadding(
-            padding: const EdgeInsets.only(top: 20.0),
+            padding: const EdgeInsets.only(top: 30.0),
             sliver: SliverToBoxAdapter(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -66,7 +66,7 @@ class _WelcomePageState extends State<WelcomePage> {
                         child: AppParaText(text: about.description, color: AppColors.blackText,),
                       ),
                       SizedBox(height: 30,),
-                      Container(
+                      /*Container(
                         width: (screenSize.width*0.8),
                         height: 180.0,
                         padding: const EdgeInsets.all(20),
@@ -113,7 +113,7 @@ class _WelcomePageState extends State<WelcomePage> {
                           ],
                         ),
                       ),
-                      SizedBox(height: 30,)
+                      SizedBox(height: 30,)*/
                     ],
                   ),
                 ],

@@ -122,7 +122,7 @@ class _ChartsPageState extends State<ChartsPage> {
                         carouselController: sliderController,
                         itemCount: parameters.length,
                         itemBuilder: (BuildContext context, itemIndex, int pageViewIndex) =>
-                          _getBarCharts(parameters[itemIndex], widget.dataList, _currentSliderValue.toInt()),
+                          widget.dataList[0].date == ""? Text("No Data"): _getBarCharts(parameters[itemIndex], widget.dataList, _currentSliderValue.toInt()),
                       ) : CarouselSlider.builder(
                         options: CarouselOptions(
                           height: double.infinity,
@@ -138,7 +138,7 @@ class _ChartsPageState extends State<ChartsPage> {
                         carouselController: sliderController,
                         itemCount: parameters.length,
                         itemBuilder: (BuildContext context, itemIndex, int pageViewIndex) =>
-                          _getLineCharts(parameters[itemIndex], widget.dataList, _currentSliderValue.toInt()),
+                          widget.dataList[0].date == ""? Text("No Data"): _getLineCharts(parameters[itemIndex], widget.dataList, _currentSliderValue.toInt()),
                       ),
                     Row( //Left Right button row
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -206,14 +206,14 @@ class _ChartsPageState extends State<ChartsPage> {
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].pH);
         }
-        reservedSize = 30.0;
+        reservedSize = 22.0;
         break;
       case 'Electrical Conductivity':
         sensorUnit = '(ms/cm)';
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].eC);
         }
-        reservedSize = 30.0;
+        reservedSize = 32.0;
         break;
       case 'Dissolved Oxygen':
         sensorUnit = '(mg/L)';
@@ -253,14 +253,14 @@ class _ChartsPageState extends State<ChartsPage> {
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].pH);
         }
-        reservedSize = 30.0;
+        reservedSize = 20.0;
         break;
       case 'Electrical Conductivity':
         sensorUnit = '(mS/cm)';
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].eC);
         }
-        reservedSize = 30.0;
+        reservedSize = 34.0;
         break;
       case 'Dissolved Oxygen':
         sensorUnit = '(mg/L)';
