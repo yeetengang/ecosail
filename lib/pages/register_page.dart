@@ -4,6 +4,7 @@ import 'package:ecosail/others/colors.dart';
 import 'package:ecosail/pages/login_page.dart';
 import 'package:ecosail/widgets/app_large_text.dart';
 import 'package:ecosail/widgets/reponsive_text.dart';
+import 'package:ecosail/widgets/responsive.dart';
 import 'package:ecosail/widgets/responsive_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -11,7 +12,6 @@ import 'package:intl/intl.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 Future<String> registerUser(String email, String password) async {
-  String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
   String datetime = DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now());
   String status = "User Register";
 
@@ -85,77 +85,80 @@ class _RegisterPageState extends State<RegisterPage> {
 
   SafeArea _buildContent() {
     return SafeArea(
-      child: Container(
-        width: double.infinity,
-        margin: EdgeInsets.all(24.0),
-        padding: EdgeInsets.symmetric(horizontal: 20.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20.0),
-          color: Colors.white,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            AppLargeText(
-              text: "SIGN UP", 
-              color: Color.fromRGBO(0, 180, 216, 1),
-              size: 40,
-            ),
-            Container(
-              width: 12,
-              height: 12,
-              margin: EdgeInsets.all(20.0),
-              decoration: BoxDecoration(
-                color: AppColors.btnColor1,
-                borderRadius: BorderRadius.circular(20.0)
+      child: Align(
+        alignment: Alignment.center,
+        child: Container(
+          width: !Responsive.isMobile(context)? 420.0: double.infinity,
+          margin: EdgeInsets.all(24.0),
+          padding: EdgeInsets.symmetric(horizontal: 20.0),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20.0),
+            color: Colors.white,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              AppLargeText(
+                text: "SIGN UP", 
+                color: Color.fromRGBO(0, 180, 216, 1),
+                size: 40,
               ),
-            ),
-            _generateFormContent('EMAIL', emailController),
-            _generateFormContent('PASSWORD', passwordController),
-            ResponsiveButton(
-              onTap: () async {
-                if (emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
-                  showToast("Registering...");
-                  String message = await registerUser(emailController.text, passwordController.text);
-                  showToast(message);
-                } else {
-                  showToast("Email & Password cannot be empty");
-                }
-              }, 
-              width: 200.0,
-              widget: Container(
-                padding: EdgeInsets.all(12.0),
-                child: Text(
-                  "SIGN UP", 
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 20.0,
-                    letterSpacing: 0.0
+              Container(
+                width: 12,
+                height: 12,
+                margin: EdgeInsets.all(20.0),
+                decoration: BoxDecoration(
+                  color: AppColors.btnColor1,
+                  borderRadius: BorderRadius.circular(20.0)
+                ),
+              ),
+              _generateFormContent('EMAIL', emailController),
+              _generateFormContent('PASSWORD', passwordController),
+              ResponsiveButton(
+                onTap: () async {
+                  if (emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
+                    showToast("Registering...");
+                    String message = await registerUser(emailController.text, passwordController.text);
+                    showToast(message);
+                  } else {
+                    showToast("Email & Password cannot be empty");
+                  }
+                }, 
+                width: 200.0,
+                widget: Container(
+                  padding: EdgeInsets.all(12.0),
+                  child: Text(
+                    "SIGN UP", 
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 20.0,
+                      letterSpacing: 0.0
+                    ),
                   ),
                 ),
               ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text("Already registered?  "),
-                ResponsiveText(
-                  text: "Click to Login", 
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context, 
-                      PageRouteBuilder(pageBuilder: (_, __, ___) => LoginPage()), //use MaterialPageRoute for animation
-                    );
-                  }
-                ),
-              ],
-            )
-          ],
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("Already registered?  "),
+                  ResponsiveText(
+                    text: "Click to Login", 
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context, 
+                        PageRouteBuilder(pageBuilder: (_, __, ___) => LoginPage()), //use MaterialPageRoute for animation
+                      );
+                    }
+                  ),
+                ],
+              )
+            ],
+          ),
         ),
-      ),
+      )
     );
   }
 

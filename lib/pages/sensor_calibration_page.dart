@@ -72,9 +72,11 @@ class _SensorCalibratePageState extends State<SensorCalibratePage> {
     super.initState();
     futureCalibrationMessage = getCalibrationMsg(widget.boatID, widget.userID);
     Timer.periodic(Duration(milliseconds: 5000), (t) {
-      setState(() {
-        futureCalibrationMessage = getCalibrationMsg(widget.boatID, widget.userID);
-      });
+      if (this.mounted) {
+        setState(() {
+          futureCalibrationMessage = getCalibrationMsg(widget.boatID, widget.userID);
+        });
+      }
     });
   }
 

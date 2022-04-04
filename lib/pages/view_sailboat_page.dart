@@ -84,9 +84,11 @@ class _ViewSailboatState extends State<ViewSailboat> {
     super.initState();
     futureSailboatList = getSailboats(widget.userID);
     Timer.periodic(Duration(milliseconds: 5000), (t) {
-      setState(() {
-        futureSailboatList = getSailboats(widget.userID);
-      });
+      if (this.mounted) {
+        setState(() {
+          futureSailboatList = getSailboats(widget.userID);
+        });
+      }
     });
   }
 

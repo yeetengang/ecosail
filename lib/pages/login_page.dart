@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:ecosail/bottom_nav_screen.dart';
 import 'package:ecosail/pages/register_page.dart';
+import 'package:ecosail/widgets/responsive.dart';
 import 'package:flutter/material.dart';
 
 import '../others/colors.dart';
@@ -89,8 +90,10 @@ class _LoginPageState extends State<LoginPage>{
 
   SafeArea _buildContent() {
     return SafeArea(
-      child: Container(
-        width: double.infinity,
+      child: Align(
+        alignment: Alignment.center,
+        child: Container(
+        width: !Responsive.isMobile(context)? 420.0: double.infinity,
         margin: EdgeInsets.all(24.0),
         padding: EdgeInsets.symmetric(horizontal: 20.0),
         decoration: BoxDecoration(
@@ -187,6 +190,7 @@ class _LoginPageState extends State<LoginPage>{
           ],
         ),
       ),
+      )
     );
   }
 

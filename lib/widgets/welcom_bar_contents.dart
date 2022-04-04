@@ -25,7 +25,7 @@ class WelcomeAppBar extends StatelessWidget {
             //const SizedBox(width: 20,),
             Row(
               children: [
-                AppLargeText(text: "EcoSail"),
+                AppLargeText(text: "Ecosail"),
               ],
             )
           ],

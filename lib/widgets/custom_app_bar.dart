@@ -3,7 +3,10 @@ import 'package:ecosail/others/colors.dart';
 import 'package:ecosail/pages/notification_page.dart';
 import 'package:ecosail/pages/sensor_calibration_page.dart';
 import 'package:ecosail/pages/user_profile_page.dart';
+import 'package:ecosail/widgets/NavigationDrawerWidget.dart';
 import 'package:ecosail/widgets/app_large_text.dart';
+import 'package:ecosail/widgets/responsive.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class CustomAppBar extends StatefulWidget with PreferredSizeWidget{
@@ -12,8 +15,9 @@ class CustomAppBar extends StatefulWidget with PreferredSizeWidget{
   final String userEmail;
   final String boatID;
   String? currentPage;
+  GlobalKey<ScaffoldState> currkey;
 
-  CustomAppBar({required this.dataList, this.currentPage, required this.userID, required this.userEmail, required this.boatID});
+  CustomAppBar({required this.dataList, this.currentPage, required this.userID, required this.userEmail, required this.boatID, required this.currkey});
 
   @override
   _CustomAppBarState createState() => _CustomAppBarState();
@@ -42,6 +46,10 @@ class _CustomAppBarState extends State<CustomAppBar> {
       child: SafeArea(
         child: Row(
           children: [
+            Responsive.isTablet(context) && kIsWeb? IconButton(onPressed: () {
+              //Show navigation drawer menu when it is a web and is tablet size only
+              widget.currkey.currentState?.openDrawer();
+            }, icon: Icon(Icons.dehaze), color: Colors.white,) : Container(),
             const SizedBox(width: 10,),
             AppLargeText(text: "Ecosail"),
             Expanded(child: Container()),

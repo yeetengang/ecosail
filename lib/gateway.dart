@@ -35,11 +35,13 @@ class Data{
   String date;
   String time;
   List<String> boatID;
+  List<String> boatName;
 
   Data({
     required this.timestamp,
     required this.tripID,
     required this.boatID,
+    required this.boatName,
     required this.longitude,
     required this.latitude,
     required this.turbidity,
@@ -57,6 +59,7 @@ class Data{
       timestamp: parsedJson['timestamp'], 
       tripID: parsedJson['tripID'],
       boatID: parseBoatID(parsedJson['boatID']),
+      boatName: parseBoatName(parsedJson['boatName']),
       longitude: parsedJson['longitude'],
       latitude: parsedJson['latitude'],
       turbidity: parsedJson['turbidity'],
@@ -73,5 +76,10 @@ class Data{
   static List<String> parseBoatID(boatJson) {
     List<String> boatList = new List<String>.from(boatJson);
     return boatList;
+  }
+
+  static List<String> parseBoatName(boatNameJson) {
+    List<String> boatNameList = new List<String>.from(boatNameJson);
+    return boatNameList;
   }
 }

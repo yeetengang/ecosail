@@ -3,16 +3,20 @@ import 'package:ecosail/gateway.dart';
 import 'package:ecosail/others/colors.dart';
 import 'package:ecosail/widgets/app_large_text.dart';
 import 'package:ecosail/widgets/custom_app_bar.dart';
+import 'package:ecosail/widgets/responsive.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class DashboardPage extends StatefulWidget {
   final List<Data> dataList;
   final String selectedboatID;
+  final String selectedboatName;
   
   const DashboardPage({
     required this.dataList,
     required this.selectedboatID,
+    required this.selectedboatName
   });
 
   @override
@@ -64,7 +68,7 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: TabBar(
+              child: !Responsive.isDesktop(context) && !kIsWeb? TabBar( //Show tab bar when not a dekstop size and not a web
                 labelPadding: const EdgeInsets.only(left: 20, right: 20,),
                 controller: _tabController,
                 labelColor: Colors.white, 
@@ -77,15 +81,15 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
                   Tab(text: "WQI"),
                   Tab(text: "Boat"),
                 ],
-              ),
+              ): null,
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
             alignment: Alignment.center,
             width: screenWidth,
-            height: 500.0,
-            child: CarouselSlider(
+            height: Responsive.isDesktop(context)? null: 500.0,
+            child: !kIsWeb && (Responsive.isMobile(context) || Responsive.isTablet(context))? CarouselSlider( //When not a web version and is either mobile or tablet
               options: CarouselOptions(
                 height: double.infinity,
                 enlargeCenterPage: true,
@@ -94,7 +98,6 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
                 onPageChanged: (index, reason) {
                   setState(() {
                     activeIndex = index;
-                    print(activeIndex);
                   });
                 },
               ),
@@ -104,23 +107,23 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
                     Flexible(
                       child: Row(
                         children: <Widget>[
-                          _buildSensorCards(screenWidth, 'Temperature', widget.dataList[0].temp),
-                          _buildSensorCards(screenWidth, 'Turbidity', widget.dataList[0].turbidity),
+                          Expanded(child: _buildSensorCards(screenWidth, 'Temperature', widget.dataList[0].temp)),
+                          Expanded(child: _buildSensorCards(screenWidth, 'Turbidity', widget.dataList[0].turbidity)),
                         ],
                       ),
                     ),
                     Flexible(
                       child: Row(
                         children: <Widget>[
-                          _buildSensorCards(screenWidth, 'pH', widget.dataList[0].pH),
-                          _buildSensorCards(screenWidth, 'Electrical\nConductivity', widget.dataList[0].eC),
+                          Expanded(child: _buildSensorCards(screenWidth, 'pH', widget.dataList[0].pH)),
+                          Expanded(child: _buildSensorCards(screenWidth, 'Electrical\nConductivity', widget.dataList[0].eC)),
                         ],
                       ),
                     ),
                     Flexible(
                       child: Row(
                         children: <Widget>[
-                          _buildSensorCards(screenWidth, 'Dissolved\nOxygen', widget.dataList[0].dO),
+                          Expanded(child: _buildSensorCards(screenWidth, 'Dissolved\nOxygen', widget.dataList[0].dO)),
                         ],
                       ),
                     ),
@@ -133,64 +136,106 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
                 ),
                 Column(
                   children: <Widget>[
-                    _buildCurrentSailboatCard(screenHeight, widget.selectedboatID),
+                    _buildCurrentSailboatCard(screenHeight, widget.selectedboatID, widget.selectedboatName),
                     _buildBoatDataCards(screenHeight, 'Current Location', widget.dataList),
                     _buildBoatDataCards(screenHeight, 'Wind Direction', widget.dataList)
                   ],
                 ),
               ],
+            ): Responsive.isTablet(context) && kIsWeb? Column( //When is a web version and is tablet size
+              children: <Widget>[
+                Flexible(
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(child: _buildSensorCards(screenWidth, 'Temperature', widget.dataList[0].temp)),
+                      Expanded(child: _buildSensorCards(screenWidth, 'Turbidity', widget.dataList[0].turbidity)),
+                    ],
+                  ),
+                ),
+                Flexible(
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(child: _buildSensorCards(screenWidth, 'pH', widget.dataList[0].pH)),
+                      Expanded(child: _buildSensorCards(screenWidth, 'Electrical\nConductivity', widget.dataList[0].eC)),
+                    ],
+                  ),
+                ),
+                Flexible(
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(child: _buildSensorCards(screenWidth, 'Dissolved\nOxygen', widget.dataList[0].dO)),
+                    ],
+                  ),
+                ),
+              ],
+            ): Container( //When is a web version
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        fit: FlexFit.loose,
+                        child: SizedBox(
+                          height: 200,
+                          child: _buildSensorCards(screenWidth, 'Temperature', widget.dataList[0].temp),
+                        )
+                      ),
+                      Flexible(
+                        fit: FlexFit.loose,
+                        child: SizedBox(
+                          height: 200,
+                          child: _buildSensorCards(screenWidth, 'Turbidity', widget.dataList[0].turbidity),
+                        )
+                      ),
+                      Flexible(
+                        fit: FlexFit.loose,
+                        child: SizedBox(
+                          height: 200,
+                          child: _buildSensorCards(screenWidth, 'pH', widget.dataList[0].pH),
+                        )
+                      ),
+                      Flexible(
+                        fit: FlexFit.loose,
+                        child: SizedBox(
+                          height: 200,
+                          child: _buildSensorCards(screenWidth, 'Electrical\nConductivity', widget.dataList[0].eC),
+                        )
+                      ),
+                      Flexible(
+                        fit: FlexFit.loose,
+                        child: SizedBox(
+                          height: 200,
+                          child: _buildSensorCards(screenWidth, 'Dissolved\nOxygen', widget.dataList[0].dO),
+                        )
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-          /*Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-            height: 480.0,
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                Column(
-                  children: <Widget>[
-                    Flexible(
-                      child: Row(
-                        children: <Widget>[
-                          _buildSensorCards(screenWidth, 'Temperature', widget.dataList[0].temp),
-                          _buildSensorCards(screenWidth, 'Turbidity', widget.dataList[0].turbidity),
-                        ],
-                      ),
-                    ),
-                    Flexible(
-                      child: Row(
-                        children: <Widget>[
-                          _buildSensorCards(screenWidth, 'pH', widget.dataList[0].pH),
-                          _buildSensorCards(screenWidth, 'Electrical\nConductivity', widget.dataList[0].eC),
-                        ],
-                      ),
-                    ),
-                    Flexible(
-                      child: Row(
-                        children: <Widget>[
-                          _buildSensorCards(screenWidth, 'Dissolved\nOxygen', widget.dataList[0].dO),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                Text('Predicted WQI data'),
-                Column(
-                  children: <Widget>[
-                    _buildCurrentSailboatCard(screenHeight, widget.dataList[0].boatID),
-                    _buildBoatDataCards(screenHeight, 'Current Location', widget.dataList),
-                    _buildBoatDataCards(screenHeight, 'Wind Direction', widget.dataList)
-                  ],
-                ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 5.0),
+            alignment: Alignment.topLeft,
+            child: Text('Predicted WQI data',),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 5.0),
+            child: Column(
+              children: <Widget>[
+                _buildCurrentSailboatCard(screenHeight, widget.selectedboatID, widget.selectedboatName),
+                _buildBoatDataCards(screenHeight, 'Current Location', widget.dataList),
+                _buildBoatDataCards(screenHeight, 'Wind Direction', widget.dataList)
               ],
             ),
-          )   */       
+          ) 
         ],
       ),
     );
   }
 
-  Expanded _buildSensorCards(double screenWidth, String sensorName, double sensorData) {
+  Container _buildSensorCards(double screenWidth, String sensorName, double sensorData) {
     String sensorUnit;
     double sensorLowerSecondLimit = 0.0; //Lowest Value
     double sensorLowerFirstLimit = 0.0; //Second Lowest Value
@@ -246,85 +291,75 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
       sensorValueColor = Colors.orange;
     }
   
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.all(8.0),
-        padding: const EdgeInsets.all(10.0),
-        decoration: BoxDecoration(
-          color: AppColors.btnColor2,
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Align(
-              alignment: AlignmentDirectional.center,
-              child: Text(
-                sensorName,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.bold,
-                ),
+    return Container(
+      margin: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(10.0),
+      decoration: BoxDecoration(
+        color: AppColors.btnColor2,
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Align(
+            alignment: AlignmentDirectional.center,
+            child: Text(
+              sensorName,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            Container(
-              child: Row(
-                children: [
-                  Text(
-                    'OFF / ON',
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 12.0,
-                    ),
+          ),
+          Container(
+            child: Row(
+              children: [
+                Text(
+                  'OFF / ON',
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 12.0,
                   ),
-                  Expanded(child: Container()),
-                  _getSensorActive(widget.dataList[0].date, widget.dataList[0].time)? 
-                  IconButton(
-                    icon: Icon(Icons.toggle_on, size: 35.0,), 
-                    color: AppColors.textColor1,
-                    onPressed: () {},
-                  ): IconButton(
-                    icon: Icon(Icons.toggle_off, size: 35.0,), 
-                    color: Colors.grey,
-                    onPressed: () {},
+                ),
+                Expanded(child: Container()),
+                _getSensorActive(widget.dataList[0].date, widget.dataList[0].time)? 
+                Icon(Icons.toggle_on, size: 35.0, color: AppColors.textColor1,): Icon(Icons.toggle_off, size: 35.0, color: Colors.grey,),
+              ],
+          ),
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  _getSensorActive(widget.dataList[0].date, widget.dataList[0].time)? sensorData.toString() + ' ' : '0.00 ' ,
+                  style: TextStyle(
+                    color: _getSensorActive(widget.dataList[0].date, widget.dataList[0].time)? sensorValueColor : Colors.black,
+                    fontSize: 22.0,
+                    overflow: TextOverflow.visible,
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
-            ),
-            ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    _getSensorActive(widget.dataList[0].date, widget.dataList[0].time)? sensorData.toString() + ' ' : '0.00 ' ,
+                ),
+                Container(
+                  margin: EdgeInsets.only(bottom: 5.0),
+                  child: Text(
+                    sensorUnit,
                     style: TextStyle(
                       color: _getSensorActive(widget.dataList[0].date, widget.dataList[0].time)? sensorValueColor : Colors.black,
-                      fontSize: 22.0,
                       overflow: TextOverflow.visible,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 14.0,
                     ),
                   ),
-                  Container(
-                    margin: EdgeInsets.only(bottom: 5.0),
-                    child: Text(
-                      sensorUnit,
-                      style: TextStyle(
-                        color: _getSensorActive(widget.dataList[0].date, widget.dataList[0].time)? sensorValueColor : Colors.black,
-                        overflow: TextOverflow.visible,
-                        fontSize: 14.0,
-                      ),
-                    ),
-                  )
-                ],
-              ),
+                )
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -356,7 +391,15 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
   }
 }
 
-SizedBox _buildCurrentSailboatCard(double screenHeight, String selectedBoatID) {
+SizedBox _buildCurrentSailboatCard(double screenHeight, String selectedBoatID, String selectedBoatName) {
+  String content = "";
+
+  if (selectedBoatID == "") {
+    content = "No Sailboat Selected";
+  } else {
+    content = '\nName: ' + selectedBoatName + '\nID: '+ selectedBoatID;
+  }
+
   return SizedBox(
     height: screenHeight * 0.18,
     child: Row(
@@ -408,7 +451,7 @@ SizedBox _buildCurrentSailboatCard(double screenHeight, String selectedBoatID) {
                       'Current Sailboat',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    Text('\nName: Salboat 1' + '\nID: '+ selectedBoatID, style: TextStyle(fontSize: 12.0, height: 1.5),),
+                    Text(content, style: TextStyle(fontSize: 12.0, height: 1.5),),
                   ],
                 ),
               )

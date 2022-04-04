@@ -75,6 +75,7 @@ class _MapAppState extends State<MapApp> {
   late LatLng sailboatPosition;
   bool _editable = false;
   List<LatLng> initialPoints = [];
+  String currentDistance = "0.0";
   
   @override
   void initState() {
@@ -139,10 +140,11 @@ class _MapAppState extends State<MapApp> {
   Widget build(BuildContext context) {
     List<bool> _disabled = [false, false, false, false];
 
-    print(widget.locationList.length);
-
     setState(() {
       _markers[0].point = widget.pointer;
+      if (widget.boatID != "") {
+        currentDistance = _getDistance(_markers[0].point.latitude, _markers[0].point.longitude, _markers[1].point.latitude, _markers[1].point.longitude);
+      }
     });
 
     return Stack(
@@ -210,7 +212,7 @@ class _MapAppState extends State<MapApp> {
                 'Latitude: ' + dragUpdatePosition.latitude.toStringAsFixed(8) + '\nLongtitude: ' + dragUpdatePosition.longitude.toStringAsFixed(8) + '\nDistance: ' + _getDistance(sailboatPosition.latitude, sailboatPosition.longitude, dragUpdatePosition.latitude, dragUpdatePosition.longitude), 
                 style: TextStyle(color: Colors.white),
               ): Text(
-                'Latitude: ' + widget.boatLatitude.toStringAsFixed(8) + '\nLongtitude: ' + widget.boatLongitude.toStringAsFixed(8) + '\nDistance: ' + _getDistance(sailboatPosition.latitude, sailboatPosition.longitude, dragUpdatePosition.latitude, dragUpdatePosition.longitude), 
+                'Latitude: ' + widget.boatLatitude.toStringAsFixed(8) + '\nLongtitude: ' + widget.boatLongitude.toStringAsFixed(8) + '\nDistance: ' + currentDistance, 
                 style: TextStyle(color: Colors.white),
               ),
             ),

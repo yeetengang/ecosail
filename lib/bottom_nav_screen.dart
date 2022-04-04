@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:ecosail/data/data.dart';
 import 'package:ecosail/gateway.dart';
 import 'package:ecosail/others/colors.dart';
 import 'package:ecosail/pages/charts_page.dart';
@@ -10,9 +11,15 @@ import 'package:ecosail/pages/location_page.dart';
 import 'package:ecosail/pages/notification_page.dart';
 import 'package:ecosail/pages/sailboat_register_page.dart';
 import 'package:ecosail/sailboat.dart';
+import 'package:ecosail/widgets/NavigationDrawerWidget.dart';
+import 'package:ecosail/widgets/app_large_text.dart';
 import 'package:ecosail/widgets/custom_app_bar.dart';
+import 'package:ecosail/widgets/get_pages.dart';
 import 'package:ecosail/widgets/notification_api.dart';
+import 'package:ecosail/widgets/reponsive_text.dart';
+import 'package:ecosail/widgets/responsive.dart';
 import 'package:ecosail/widgets/responsive_btn.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:sliding_sheet/sliding_sheet.dart';
 import 'package:http/http.dart' as http;
@@ -63,6 +70,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
   late List<Data> datalist;
   late List<Boat> boatList;
   late Future<Sailboat> futureSailboat;
+  GlobalKey<ScaffoldState> _key = GlobalKey();
 
   //A function for on click the tab
   void onTap(int index) {
@@ -114,11 +122,12 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
                 datalist = snapshot.data!.data;
                 if (datalist[0].boatID.length > 0 && _selectedSailboat == '') {
                   _selectedSailboat = datalist[0].boatID[0];
+                  _selectedSailboatName = datalist[0].boatName[0];
                 }
                 print(datalist[0].boatID.length);
                 if (datalist[0].boatID.length == 0) {
                   _selectedSailboat = '';
-                  print(_selectedSailboat);
+                  _selectedSailboatName = '';
                 }
 
                 if (_selectedSailboat!= '') {
@@ -128,12 +137,35 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
                 }
                 //print("test");
                 return Scaffold(
+                  key: _key,
+                  drawer: NavigationDrawerWidget(
+                    widgetList: _buildNavigationBar(screenSize),
+                  ),
                   appBar: PreferredSize(
                     preferredSize: Size(screenSize.width, 60),
-                    child: CustomAppBar(dataList: datalist, userID: widget.userID, userEmail: widget.userEmail, boatID: _selectedSailboat,),
+                    child: CustomAppBar(dataList: datalist, userID: widget.userID, userEmail: widget.userEmail, boatID: _selectedSailboat, currkey: _key,),
                   ),
-                  body: getPages(currentIndex),
-                  bottomNavigationBar: Container(
+                  body: Responsive.isDesktop(context)? Row( //Is Desktop Size then can show the row version, else show pages only as mobile and tablet got bottom nav bar
+                    children: [
+                      Container(
+                        width: screenSize.width * 0.2,
+                        color: AppColors.btnColor2,
+                        alignment: Alignment.center,
+                        child: Center(
+                          child: ListView(
+                            shrinkWrap: true,
+                            controller: ScrollController(),
+                            children: _buildNavigationBar(screenSize),
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: screenSize.width*0.8,
+                        child: getPages(currentIndex, datalist, _selectedSailboat, _selectedSailboatName, widget.userID),
+                      ),
+                    ],
+                  ) : getPages(currentIndex, datalist, _selectedSailboat, _selectedSailboatName, widget.userID),
+                  bottomNavigationBar: !kIsWeb? Container( //Show bottom Navigation Bar only if not a web version
                     decoration: BoxDecoration(
                       boxShadow: <BoxShadow>[
                         BoxShadow(
@@ -172,15 +204,15 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
                           icon: Icon(Icons.water)),
                       ],
                     ),
-                  ),
-                  floatingActionButton: FloatingActionButton(
+                  ) : null,
+                  floatingActionButton: !Responsive.isDesktop(context) && !kIsWeb ? FloatingActionButton(
                     child: Icon(
                       Icons.sailing, 
                       color: AppColors.pageBackground,
                     ),
                     backgroundColor: AppColors.btnColor2,
                     onPressed: showSailboatSheet,
-                  ),
+                  ): null,
                   floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
                 );
               }
@@ -210,6 +242,76 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
     );
   }
 
+  List<Widget> _buildNavigationBar(Size screenSize) {
+    return [
+      Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 100.0,
+            height: 100.0,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(ecosailContent.logoUrl),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10.0,),
+          AppLargeText(
+            text: "Ecosail",
+            color: AppColors.pageBackground,
+          ),
+        ],
+      ),
+      const SizedBox(height: 30.0,),
+      Container(
+        height: screenSize.height * 0.35,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ResponsiveText(
+              text: "Dashboard",
+              colors: currentIndex == 0? AppColors.mainColor:Colors.black,
+              onTap: () {
+                setState(() {
+                  currentIndex = 0;
+                });
+              },
+            ),
+            ResponsiveText(
+              text: "Location",
+              colors: currentIndex == 1? AppColors.mainColor:Colors.black,
+              onTap: () {
+                setState(() {
+                  currentIndex = 1;
+                });
+              },
+            ),
+            ResponsiveText(
+              text: "Charts",
+              colors: currentIndex == 2? AppColors.mainColor:Colors.black,
+              onTap: () {
+                setState(() {
+                  currentIndex = 2;
+                });
+              },
+            ),
+            ResponsiveText(
+              text: "Analysis",
+              colors: currentIndex == 3? AppColors.mainColor:Colors.black,
+              onTap: () {
+                setState(() {
+                  currentIndex = 3;
+                });
+              },
+            ),
+          ],
+        ),
+      ),
+    ];
+  }
+
   Future showSailboatSheet() => showSlidingBottomSheet(
     context,
     builder: (context) => SlidingSheetDialog(
@@ -224,11 +326,11 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
     ),
   );
 
-  Widget getPages(int index) {
+  /*Widget getPages(int index) {
     switch (index) {
       case 0:
         //return DashboardPage(dataList: datalist);
-        return DashboardPage(dataList: datalist, selectedboatID: _selectedSailboat,);
+        return DashboardPage(dataList: datalist, selectedboatID: _selectedSailboat, selectedboatName: _selectedSailboatName,);
       case 1:
         return LocationPage(dataList: datalist, selectedboatID: _selectedSailboat, userID: widget.userID);
       case 2:
@@ -237,9 +339,9 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
         return MapsPage();
       default:
         //return DashboardPage(dataList: datalist);
-        return DashboardPage(dataList: datalist, selectedboatID: _selectedSailboat,);
+        return DashboardPage(dataList: datalist, selectedboatID: _selectedSailboat, selectedboatName: _selectedSailboatName,);
     }
-  }
+  }*/
 
   Widget buildSheet(context, state) => Material(
     child: Column(
