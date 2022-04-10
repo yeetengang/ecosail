@@ -1,4 +1,5 @@
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:ecosail/others/show_toast.dart';
 import 'package:ecosail/widgets/water_line_chart.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:ecosail/gateway.dart';
@@ -34,6 +35,100 @@ class _ChartsPageState extends State<ChartsPage> {
         slivers: <Widget>[
           _buildHeader(),
           _buildBody(screenSize.height, screenSize.width),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Container(
+              height: screenSize.height * 0.625,
+              width: screenSize.width,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(30.0), 
+                  topRight: Radius.circular(30.0)
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container( //Chart Indicator & Chart Selection button
+                    height: 60.0,
+                    padding: EdgeInsets.only(left: 20.0, top: 10.0, right: 20.0),
+                    child: Row(
+                      children: <Widget>[
+                        _buildChartIndicator(),
+                        Expanded(child: Container()),
+                        _buildChartSelectBtn(Icons.show_chart, 0),
+                        SizedBox(width: 10.0,),
+                        _buildChartSelectBtn(Icons.bar_chart, 1),
+                      ],
+                    ),
+                  ),
+                  Expanded( //Expand vertical
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        _selected[1] ? 
+                        CarouselSlider.builder(
+                          options: CarouselOptions(
+                            height: double.infinity,
+                            enlargeCenterPage: true,
+                            viewportFraction: 1,
+                            initialPage: 0,
+                            onPageChanged: (index, reason) {
+                              setState(() {
+                                activeIndex = index;
+                              });
+                            },
+                          ),
+                          carouselController: sliderController,
+                          itemCount: parameters.length,
+                          itemBuilder: (BuildContext context, itemIndex, int pageViewIndex) =>
+                            widget.dataList[0].date == ""? Text("No Data"): _getBarCharts(parameters[itemIndex], widget.dataList, _currentSliderValue.toInt()),
+                        ) : CarouselSlider.builder(
+                          options: CarouselOptions(
+                            height: double.infinity,
+                            enlargeCenterPage: true,
+                            viewportFraction: 1,
+                            initialPage: 0,
+                            onPageChanged: (index, reason) {
+                              setState(() {
+                                activeIndex = index;
+                              });
+                            },
+                          ),
+                          carouselController: sliderController,
+                          itemCount: parameters.length,
+                          itemBuilder: (BuildContext context, itemIndex, int pageViewIndex) =>
+                            widget.dataList[0].date == ""? Text("No Data"): _getLineCharts(parameters[itemIndex], widget.dataList, _currentSliderValue.toInt()),
+                        ),
+                      Row( //Left Right button row
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(width: 30, height: 50, color: Colors.white,
+                              child: IconButton(
+                                icon: Icon(Icons.arrow_back_ios),
+                                iconSize: 16.0,
+                                padding: EdgeInsets.only(left: 20.0),
+                                onPressed: previous,
+                              ),
+                            ),
+                            Expanded(child: Container()),
+                            Container(width: 30, height: 50, color: Colors.white,
+                              child: IconButton(
+                                icon: Icon(Icons.arrow_forward_ios),
+                                iconSize: 16.0,
+                                padding: EdgeInsets.only(right: 20.0),
+                                onPressed: next,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
         ],
       ),
     );
@@ -47,7 +142,7 @@ class _ChartsPageState extends State<ChartsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             AppLargeText(text: 'Charts', color: Colors.blue.shade100,size: 26,),
-            Text('Historical Data', style: TextStyle(height: 1.6, color: Colors.grey[300], fontWeight: FontWeight.w500),),
+            Text('Historical Data (7, 20, 34, 47, 60 data)', style: TextStyle(height: 1.6, color: Colors.grey[300], fontWeight: FontWeight.w500),),
           ],
         ),
       ),
@@ -69,105 +164,23 @@ class _ChartsPageState extends State<ChartsPage> {
               divisions: 4,
               activeColor: AppColors.btnColor2,
               inactiveColor: AppColors.mainColor,
-              label: _currentSliderValue.round().toString() + ' days',
+              label: _currentSliderValue.round().toString() + ' data',
               onChanged: (double value) {
-                setState(() {
-                  _currentSliderValue = value;
-                });
+                if (widget.dataList.length >= value) {
+                  // If data retrieved is more or equal to current slider value
+                  setState(() {
+                    _currentSliderValue = value;
+                  });
+                }
+              },
+              onChangeEnd: (double value) {
+                if (widget.dataList.length < value) {
+                  showToast("Currently only " + widget.dataList.length.toString() + " data available");
+                }
               },
             ),
           ), 
-          Container(
-            height: screenHeight * 0.625,
-            width: screenWidth,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(30.0), 
-                topRight: Radius.circular(30.0)
-              ),
-            ),
-            child: Column(
-              children: [
-                Container( //Chart Indicator & Chart Selection button
-                  height: 60.0,
-                  padding: EdgeInsets.only(left: 20.0, top: 10.0, right: 20.0),
-                  child: Row(
-                    children: <Widget>[
-                      _buildChartIndicator(),
-                      Expanded(child: Container()),
-                      _buildChartSelectBtn(Icons.show_chart, 0),
-                      SizedBox(width: 10.0,),
-                      _buildChartSelectBtn(Icons.bar_chart, 1),
-                    ],
-                  ),
-                ),
-                Expanded( //Expand vertical
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      _selected[1] ? 
-                      CarouselSlider.builder(
-                        options: CarouselOptions(
-                          height: double.infinity,
-                          enlargeCenterPage: true,
-                          viewportFraction: 1,
-                          initialPage: 0,
-                          onPageChanged: (index, reason) {
-                            setState(() {
-                              activeIndex = index;
-                            });
-                          },
-                        ),
-                        carouselController: sliderController,
-                        itemCount: parameters.length,
-                        itemBuilder: (BuildContext context, itemIndex, int pageViewIndex) =>
-                          widget.dataList[0].date == ""? Text("No Data"): _getBarCharts(parameters[itemIndex], widget.dataList, _currentSliderValue.toInt()),
-                      ) : CarouselSlider.builder(
-                        options: CarouselOptions(
-                          height: double.infinity,
-                          enlargeCenterPage: true,
-                          viewportFraction: 1,
-                          initialPage: 0,
-                          onPageChanged: (index, reason) {
-                            setState(() {
-                              activeIndex = index;
-                            });
-                          },
-                        ),
-                        carouselController: sliderController,
-                        itemCount: parameters.length,
-                        itemBuilder: (BuildContext context, itemIndex, int pageViewIndex) =>
-                          widget.dataList[0].date == ""? Text("No Data"): _getLineCharts(parameters[itemIndex], widget.dataList, _currentSliderValue.toInt()),
-                      ),
-                    Row( //Left Right button row
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(width: 30, height: 50, color: Colors.white,
-                            child: IconButton(
-                              icon: Icon(Icons.arrow_back_ios),
-                              iconSize: 16.0,
-                              padding: EdgeInsets.only(left: 20.0),
-                              onPressed: previous,
-                            ),
-                          ),
-                          Expanded(child: Container()),
-                          Container(width: 30, height: 50, color: Colors.white,
-                            child: IconButton(
-                              icon: Icon(Icons.arrow_forward_ios),
-                              iconSize: 16.0,
-                              padding: EdgeInsets.only(right: 20.0),
-                              onPressed: next,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+          
         ],
       ),
     );
@@ -176,6 +189,7 @@ class _ChartsPageState extends State<ChartsPage> {
   WaterBarChart _getBarCharts(String title, List<Data> dataList, int size) {
     List<double> testWater = [12.17, 11.15, 10.02, 11.21, 13.83, 14.16, 14.30];
     List<double> waterDataList = [];
+    List<String> waterDataDate = [];
     String sensorUnit = '';
     double reservedSize = 30.0;
     double barSize = 8.0;
@@ -192,12 +206,14 @@ class _ChartsPageState extends State<ChartsPage> {
         sensorUnit = '(°C)';
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].temp);
+          waterDataDate.add(dataList[i].time);
         }
         break;
       case 'Turbidity':
         sensorUnit = '(NTU)';
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].turbidity);
+          waterDataDate.add(dataList[i].time);
         }
         reservedSize = 45.0;
         break;
@@ -205,6 +221,7 @@ class _ChartsPageState extends State<ChartsPage> {
         sensorUnit = '';
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].pH);
+          waterDataDate.add(dataList[i].time);
         }
         reservedSize = 22.0;
         break;
@@ -212,6 +229,7 @@ class _ChartsPageState extends State<ChartsPage> {
         sensorUnit = '(ms/cm)';
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].eC);
+          waterDataDate.add(dataList[i].time);
         }
         reservedSize = 32.0;
         break;
@@ -219,18 +237,26 @@ class _ChartsPageState extends State<ChartsPage> {
         sensorUnit = '(mg/L)';
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].dO);
+          waterDataDate.add(dataList[i].time);
         }
         reservedSize = 30.0;
         break;
       default:
         sensorUnit = '';
     }
-    return WaterBarChart(dataList: waterDataList, title: title + sensorUnit, reservedSize: reservedSize, barSize: barSize,);
+    return WaterBarChart(
+      dataList: waterDataList,
+      dataTime: waterDataDate,
+      title: title + sensorUnit, 
+      reservedSize: reservedSize, 
+      barSize: barSize,
+    );
   }
 
   WaterLineChart2 _getLineCharts(String title, List<Data> dataList, int size) {
     List<double> testWater = [12.17, 11.15, 10.02, 11.21, 13.83, 14.16, 14.30];
     List<double> waterDataList = [];
+    List<String> waterDataDate = [];
     String sensorUnit = '';
     double reservedSize = 30.0;
 
@@ -239,12 +265,14 @@ class _ChartsPageState extends State<ChartsPage> {
         sensorUnit = '(°C)';
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].temp);
+          waterDataDate.add(dataList[i].time);
         }
         break;
       case 'Turbidity':
         sensorUnit = '(NTU)';
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].turbidity);
+          waterDataDate.add(dataList[i].time);
         }
         reservedSize = 45.0;
         break;
@@ -252,6 +280,7 @@ class _ChartsPageState extends State<ChartsPage> {
         sensorUnit = '';
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].pH);
+          waterDataDate.add(dataList[i].time);
         }
         reservedSize = 20.0;
         break;
@@ -259,6 +288,7 @@ class _ChartsPageState extends State<ChartsPage> {
         sensorUnit = '(mS/cm)';
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].eC);
+          waterDataDate.add(dataList[i].time);
         }
         reservedSize = 34.0;
         break;
@@ -266,13 +296,20 @@ class _ChartsPageState extends State<ChartsPage> {
         sensorUnit = '(mg/L)';
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].dO);
+          waterDataDate.add(dataList[i].time);
         }
         reservedSize = 30.0;
         break;
       default:
         sensorUnit = '';
     }
-    return WaterLineChart2(dataList: waterDataList, title: title + sensorUnit, reservedSize: reservedSize, barSize: size);
+    return WaterLineChart2(
+      dataList: waterDataList,
+      timeList: waterDataDate, 
+      title: title + sensorUnit, 
+      reservedSize: reservedSize, 
+      barSize: size
+    );
   }
 
   Widget _buildChartIndicator() => AnimatedSmoothIndicator(

@@ -11,7 +11,8 @@ class UserProfile extends StatelessWidget {
   final List<Data> dataList;
   final String userID;
   final String userEmail;
-  const UserProfile({ Key? key, required this.dataList, required this.userID, required this.userEmail }) : super(key: key);
+
+  UserProfile({ Key? key, required this.dataList, required this.userID, required this.userEmail}) : super(key: key);
   
   @override
   Widget build(BuildContext context) {
@@ -41,6 +42,7 @@ class UserProfile extends StatelessWidget {
               ),
               SizedBox(height: 70.0,),
               Container(
+                constraints: BoxConstraints(minWidth: 200, maxWidth: 300),
                 padding: EdgeInsets.symmetric(vertical: 10.0),
                 child: ResponsiveButton(
                   onTap: () {}, 
@@ -61,6 +63,7 @@ class UserProfile extends StatelessWidget {
                 ),
               ),
               Container(
+                constraints: BoxConstraints(minWidth: 200, maxWidth: 300),
                 padding: EdgeInsets.symmetric(vertical: 10.0),
                 child: ResponsiveButton(
                   onTap: () {}, 
@@ -81,6 +84,7 @@ class UserProfile extends StatelessWidget {
                 ),
               ),
               Container(
+                constraints: BoxConstraints(minWidth: 200, maxWidth: 300),
                 padding: EdgeInsets.symmetric(vertical: 10.0),
                 child: ResponsiveButton(
                   widget: Container(
@@ -106,6 +110,7 @@ class UserProfile extends StatelessWidget {
                 ),
               ),
               Container(
+                constraints: BoxConstraints(minWidth: 200, maxWidth: 300),
                 padding: const EdgeInsets.symmetric(vertical: 10.0),
                 child: ResponsiveButton(
                   onTap: () {

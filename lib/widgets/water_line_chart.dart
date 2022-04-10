@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 
 class WaterLineChart2 extends StatefulWidget {
   final List<double> dataList;
+  final List<String> timeList;
   final String title;
   final double reservedSize;
   final int barSize;
@@ -21,6 +22,7 @@ class WaterLineChart2 extends StatefulWidget {
   const WaterLineChart2({ 
     Key? key, 
     required this.dataList, 
+    required this.timeList,
     required this.title, 
     required this.reservedSize,
     required this.barSize,
@@ -101,9 +103,13 @@ class _WaterLineChart2State extends State<WaterLineChart2> {
           strokeWidth: 1.0,
           dashArray: [5],
         ),
-        getDrawingVerticalLine: (value) => FlLine(
-          strokeWidth: 0.0
-        ),
+        getDrawingVerticalLine: (value) {
+          return FlLine(
+            color: Colors.black12,
+            strokeWidth: 1.0,
+            dashArray: [5],
+          );
+        },
       ),
       titlesData: FlTitlesData(
         bottomTitles: SideTitles(
@@ -119,27 +125,25 @@ class _WaterLineChart2State extends State<WaterLineChart2> {
           rotateAngle: 30.0,
           getTitles: (value) {
             // Display of x Axis
-            print(widget.dataList.length);
             if (value != 0) {
               if (widget.dataList.length == 60) {
                 if (value == 10 || value == 20 || value == 30 || value == 40 || value == 50 || value == 60) {
-                  return 'Data ' + value.toInt().toString(); 
+                  if (value.toInt() <= widget.dataList.length) {
+                    return widget.timeList[value.toInt()-1];
+                  }
                 }
-              } else if (widget.dataList.length == 33 || widget.dataList.length == 46) {
+              } else if (widget.dataList.length == 33 || widget.dataList.length == 46 || widget.dataList.length == 20) {
                 if (value%5 == 0) {
-                  return 'Data ' + value.toInt().toString(); 
-                }
-              } else if (widget.dataList.length == 20) {
-                if (value%2 == 0) {
-                  return 'Data ' + value.toInt().toString(); 
+                  if (value.toInt() <= widget.dataList.length) {
+                    return widget.timeList[value.toInt()-1];
+                  }
                 }
               } else if (widget.dataList.length <= 20) {
-                return 'Data ' + value.toInt().toString();
+                if (value.toInt() <= widget.dataList.length) {
+                  return widget.timeList[value.toInt()-1];
+                }
               }
             }
-            /*if (value != 0 && value != 8) {
-              return 'Data ' + value.toInt().toString();
-            }*/
             return '';
           },
         ),
@@ -175,6 +179,10 @@ class _WaterLineChart2State extends State<WaterLineChart2> {
         ),
       ],
     );
+  }
+
+  String _getDataFromList() {
+    return "test";
   }
 
   List<FlSpot> _getCoordinates() => List.generate(widget.dataList.length, (i) {

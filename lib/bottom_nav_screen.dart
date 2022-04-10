@@ -4,10 +4,7 @@ import 'dart:convert';
 import 'package:ecosail/data/data.dart';
 import 'package:ecosail/gateway.dart';
 import 'package:ecosail/others/colors.dart';
-import 'package:ecosail/pages/charts_page.dart';
-import 'package:ecosail/pages/dashboard_page.dart';
-import 'package:ecosail/pages/interpolation_maps_page.dart';
-import 'package:ecosail/pages/location_page.dart';
+import 'package:ecosail/others/show_toast.dart';
 import 'package:ecosail/pages/notification_page.dart';
 import 'package:ecosail/pages/sailboat_register_page.dart';
 import 'package:ecosail/sailboat.dart';
@@ -23,7 +20,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:sliding_sheet/sliding_sheet.dart';
 import 'package:http/http.dart' as http;
-import 'package:fluttertoast/fluttertoast.dart';
 
 // Use POST method to get sensor Data
 Future<Gateway> getSensorData(String userID, String boatID) async{
@@ -120,6 +116,8 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 datalist = snapshot.data!.data;
+                print("Current Boat: " + _selectedSailboat);
+
                 if (datalist[0].boatID.length > 0 && _selectedSailboat == '') {
                   _selectedSailboat = datalist[0].boatID[0];
                   _selectedSailboatName = datalist[0].boatName[0];
@@ -138,12 +136,43 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
                 //print("test");
                 return Scaffold(
                   key: _key,
-                  drawer: NavigationDrawerWidget(
-                    widgetList: _buildNavigationBar(screenSize),
-                  ),
+                  drawer: Responsive.isTablet(context) && kIsWeb? NavigationDrawerWidget( //Drawer only take effect if it is a web version and is tablet size only
+                    widgetList: _buildNavigationBar(screenSize, datalist[0].boatID),
+                  ): null,
                   appBar: PreferredSize(
                     preferredSize: Size(screenSize.width, 60),
-                    child: CustomAppBar(dataList: datalist, userID: widget.userID, userEmail: widget.userEmail, boatID: _selectedSailboat, currkey: _key,),
+                    child: CustomAppBar(
+                      dataList: datalist, 
+                      userID: widget.userID, 
+                      userEmail: widget.userEmail, 
+                      boatID: _selectedSailboat, 
+                      currkey: _key,
+                      dropDownWidget: kIsWeb? Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10.0),
+                          color: AppColors.btnColor2,
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                        child: DropdownButton(
+                          value: _selectedSailboat, //This is the current sailboat ID
+                          isDense: true,
+                          elevation: 0,
+                          icon: Icon(Icons.sailing, color: AppColors.pageBackground,),
+                          items: datalist[0].boatID.map((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedSailboat = newValue!;
+                              showToast("Refreshing sailboat collected data...");
+                            });
+                          }
+                        ),
+                      ): Container(),
+                  ),
                   ),
                   body: Responsive.isDesktop(context)? Row( //Is Desktop Size then can show the row version, else show pages only as mobile and tablet got bottom nav bar
                     children: [
@@ -155,7 +184,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
                           child: ListView(
                             shrinkWrap: true,
                             controller: ScrollController(),
-                            children: _buildNavigationBar(screenSize),
+                            children: _buildNavigationBar(screenSize, datalist[0].boatID),
                           ),
                         ),
                       ),
@@ -242,7 +271,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
     );
   }
 
-  List<Widget> _buildNavigationBar(Size screenSize) {
+  List<Widget> _buildNavigationBar(Size screenSize, List<String> boatID) {
     return [
       Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -504,15 +533,5 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
       return false;
     }
     return true;
-  }
-
-  void showToast(String text) {
-    Fluttertoast.showToast(
-      msg: text,
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM,
-      backgroundColor: Colors.grey,
-      textColor: Colors.white,
-    );
   }
 }

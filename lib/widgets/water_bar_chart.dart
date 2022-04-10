@@ -1,16 +1,19 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:ecosail/others/colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 class WaterBarChart extends StatefulWidget {
   final List<double> dataList;
+  final List<String> dataTime;
   final String title;
   final double reservedSize;
   final double barSize;
 
   const WaterBarChart({
     required this.dataList, 
+    required this.dataTime,
     required this.title,
     required this.reservedSize,
     required this.barSize,
@@ -76,6 +79,7 @@ class WaterBarChartState extends State<WaterBarChart> {
     double y,
     double size, {
       bool isTouched = false,
+      bool isLabel = false,
       Color barColor = Colors.blue,
       List<int> showTooltips = const [],
     }) {
@@ -84,7 +88,10 @@ class WaterBarChartState extends State<WaterBarChart> {
       barRods: [
         BarChartRodData(
           y: isTouched ? y : y,
-          colors: isTouched ? [Colors.lightBlue.shade200] : [barColor],
+          //colors: isTouched? [Colors.lightBlue.shade200] : [barColor],
+          colors: isLabel && !isTouched? [AppColors.pageBackground] // If it is a %5 label and that label is not touched
+          : isLabel && isTouched? [AppColors.pageBackground.withOpacity(0.8)] 
+          : !isLabel && !isTouched? [barColor]:[Colors.lightBlue.shade200],
           width: size,
           borderSide: const BorderSide(width: 0),
           backDrawRodData: BackgroundBarChartRodData(
@@ -99,7 +106,11 @@ class WaterBarChartState extends State<WaterBarChart> {
   }
 
   List<BarChartGroupData> showingGroups() => List.generate(widget.dataList.length, (i) {
-    return makeGroupData(i, widget.dataList[i], widget.barSize, isTouched: i == touchedIndex);
+    bool checking = (i + 1)%5==0;
+    if (widget.dataList.length == 7) {
+      checking = false;
+    }
+    return makeGroupData(i, widget.dataList[i], widget.barSize, isTouched: i == touchedIndex, isLabel: checking);
   });
 
   BarChartData mainBarData(double yMax, double yMin) {
@@ -156,7 +167,19 @@ class WaterBarChartState extends State<WaterBarChart> {
           ),
           rotateAngle: 30.0,
           getTitles: (double value) {
-            return 'Data ' + value.toInt().toString();
+            // Display of x Axis
+              if (widget.dataList.length == 33 || widget.dataList.length == 46 || widget.dataList.length == 60 || widget.dataList.length == 20) {
+                if ((value + 1)%5 == 0) {
+                  if (value.toInt() < widget.dataList.length) {
+                    return widget.dataTime[value.toInt()];
+                  }
+                }
+              } else if (widget.dataList.length <= 20) {
+                if (value.toInt() < widget.dataList.length) {
+                  return widget.dataTime[value.toInt()];
+                }
+              }
+            return '';
           },
         ),
         leftTitles: SideTitles(
@@ -202,7 +225,7 @@ class WaterBarChartState extends State<WaterBarChart> {
           dashArray: [5],
         ),
         getDrawingVerticalLine: (value) => FlLine(
-          strokeWidth: 0.0
+          strokeWidth: 0.0,
         ),
       ),
     );

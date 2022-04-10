@@ -43,7 +43,7 @@ class SailboatRegisterPage extends StatefulWidget {
   final String userID;
   final String userEmail;
   
-  const SailboatRegisterPage({ Key? key, required this.dataList, required this.userID, required this.userEmail }) : super(key: key);
+  SailboatRegisterPage({ Key? key, required this.dataList, required this.userID, required this.userEmail }) : super(key: key);
 
   @override
   _SailboatRegisterPageState createState() => _SailboatRegisterPageState();

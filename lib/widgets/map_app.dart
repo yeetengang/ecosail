@@ -13,10 +13,10 @@ import 'package:http/http.dart' as http;
 
 import 'package:fluttertoast/fluttertoast.dart';
 
-Future<String> uploadLocation(String boatID, double latitude, double longitude, int userID) async {
+Future<String> uploadLocation(String boatID, double latitude, double longitude, String userID) async {
   String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
   String datetime = DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now());
-  String status = "Not Complete";
+  String status = "Add Location";
 
   final response = await http.post(
     Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
@@ -28,7 +28,7 @@ Future<String> uploadLocation(String boatID, double latitude, double longitude, 
       'timestamp': timestamp,
       'latitude': latitude.toStringAsFixed(8),
       'longitude': longitude.toStringAsFixed(8),
-      'userID': userID.toString(),
+      'userID': userID,
       'datetime': datetime, //'12/01/2022 14:14:05'
       'status': status,
     }),
@@ -41,11 +41,56 @@ Future<String> uploadLocation(String boatID, double latitude, double longitude, 
   }
 }
 
+Future<String> deleteAllLocation(String boatID, String userID) async {
+  String status = "Delete Location";
+
+  final response = await http.post(
+    Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
+    headers: <String, String>{
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode(<String, String>{
+      'boatID': boatID,
+      'userID': userID,
+      'status': status,
+    }),
+  );
+  if (response.statusCode == 200) {
+    //return LocationData.fromJson(jsonDecode(response.body));
+    return jsonDecode(response.body)['data'];
+  } else {
+    throw Exception('Failed to add location.');
+  }
+}
+
+Future<String> startNavigating(String boatID, String userID) async {
+  String status = "Start Navigate";
+
+  final response = await http.post(
+    Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
+    headers: <String, String>{
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode(<String, String>{
+      'boatID': boatID,
+      'userID': userID,
+      'status': status,
+    }),
+  );
+  if (response.statusCode == 200) {
+    //return LocationData.fromJson(jsonDecode(response.body));
+    return jsonDecode(response.body)['data'];
+  } else {
+    throw Exception('Failed to add location.');
+  }
+}
+
 class MapApp extends StatefulWidget {
   LatLng pointer;
   double boatLatitude;
   double boatLongitude;
   String boatID;
+  String userID;
   String lastActiveDate;
   String lastActiveTime;
   List<LocationDataItem> locationList;
@@ -56,6 +101,7 @@ class MapApp extends StatefulWidget {
     required this.boatLatitude,
     required this.boatLongitude, 
     required this.boatID,
+    required this.userID,
     required this.lastActiveDate,
     required this.lastActiveTime,
     required this.locationList,
@@ -142,7 +188,7 @@ class _MapAppState extends State<MapApp> {
 
     setState(() {
       _markers[0].point = widget.pointer;
-      if (widget.boatID != "") {
+      if (widget.boatID != "" && _markers.length >= 2) {
         currentDistance = _getDistance(_markers[0].point.latitude, _markers[0].point.longitude, _markers[1].point.latitude, _markers[1].point.longitude);
       }
     });
@@ -237,7 +283,7 @@ class _MapAppState extends State<MapApp> {
                       }else {
                         setState(() {
                           if (widget.boatID != "") {
-                            print(uploadLocation(widget.boatID, dragUpdatePosition.latitude, dragUpdatePosition.longitude, 123));
+                            print(uploadLocation(widget.boatID, dragUpdatePosition.latitude, dragUpdatePosition.longitude, widget.userID));
                             showToast(dragUpdatePosition.latitude.toStringAsFixed(8) + ', '+ dragUpdatePosition.longitude.toStringAsFixed(8));
                           }
                           else {
@@ -252,8 +298,12 @@ class _MapAppState extends State<MapApp> {
                   ),
                   MapPageButton(
                     margin: EdgeInsets.only(bottom: 16.0), 
-                    widget: Icon(Icons.cloud, color: AppColors.btnColor2,),
-                    onTap: () {},
+                    widget: Icon(Icons.delete, color: AppColors.btnColor2,),
+                    onTap: () async {
+                      showToast("Deleting Pin Points...");
+                      showToast(await deleteAllLocation(widget.boatID, widget.userID));
+                      _markers.removeRange(1, _markers.length); //Greater than equal to start, less than end
+                    },
                   ),
                   MapPageButton(
                     margin: EdgeInsets.only(bottom: 16.0), 
@@ -262,6 +312,16 @@ class _MapAppState extends State<MapApp> {
                       setState(() {
                         //Move the camera to follow the sailboat
                         _mapController.move(widget.pointer, 18.0);
+                      });
+                    },
+                  ),
+                  MapPageButton(
+                    margin: EdgeInsets.only(bottom: 16.0), 
+                    widget: Icon(Icons.play_arrow_rounded, color: AppColors.btnColor2,),
+                    onTap: () {
+                      setState(() {
+                        //Start the navigation
+
                       });
                     },
                   ),

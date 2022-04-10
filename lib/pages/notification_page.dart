@@ -57,7 +57,7 @@ class _NotificationPageState extends State<NotificationPage> {
     final Size screenSize = MediaQuery.of(context).size;
 
     if (widget.boatID != "") {
-      futureNotification = getNotification(widget.userID, widget.boatID);
+      futureNotification = getNotification(widget.userID, widget.boatID,);
     }
 
     return Scaffold(

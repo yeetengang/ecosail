@@ -13,7 +13,6 @@ class NavigationDrawerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Drawer(
       child: Container(
         color: AppColors.btnColor2,

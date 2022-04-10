@@ -66,7 +66,8 @@ class ViewSailboat extends StatefulWidget {
   final List<Data> dataList;
   final String userID;
   final String userEmail;
-  const ViewSailboat({ Key? key, required this.dataList, required this.userID, required this.userEmail }) : super(key: key);
+  
+  const ViewSailboat({ Key? key, required this.dataList, required this.userID, required this.userEmail,}) : super(key: key);
 
   @override
   _ViewSailboatState createState() => _ViewSailboatState();

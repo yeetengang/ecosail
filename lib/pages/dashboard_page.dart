@@ -1,12 +1,11 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:ecosail/gateway.dart';
 import 'package:ecosail/others/colors.dart';
+import 'package:ecosail/others/functions.dart';
 import 'package:ecosail/widgets/app_large_text.dart';
-import 'package:ecosail/widgets/custom_app_bar.dart';
 import 'package:ecosail/widgets/responsive.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class DashboardPage extends StatefulWidget {
   final List<Data> dataList;
@@ -14,6 +13,7 @@ class DashboardPage extends StatefulWidget {
   final String selectedboatName;
   
   const DashboardPage({
+    Key? key,
     required this.dataList,
     required this.selectedboatID,
     required this.selectedboatName
@@ -383,7 +383,7 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
     DateTime deviceDateTime = DateTime.now();
     //print('data: ' + sensorLatestDateTime.toString());
     //print('now: ' + deviceDateTime.toString());
-    print('differences: ' + deviceDateTime.difference(sensorLatestDateTime).inSeconds.toString());
+    //print('differences: ' + deviceDateTime.difference(sensorLatestDateTime).inSeconds.toString());
     if (deviceDateTime.difference(sensorLatestDateTime).inSeconds >= 15) { //Usually 15 seconds, but the emulator got time delay
       return false;
     }

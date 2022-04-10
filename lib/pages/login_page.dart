@@ -147,7 +147,7 @@ class _LoginPageState extends State<LoginPage>{
                     Navigator.pop(context);
                     Navigator.push(
                       context, 
-                      PageRouteBuilder(pageBuilder: (_, __, ___) => BottomNavScreen(userID: userID, userEmail: emailController.text)), //use MaterialPageRoute for animation
+                      PageRouteBuilder(pageBuilder: (_, __, ___) => BottomNavScreen(userID: userID, userEmail: emailController.text,)), //use MaterialPageRoute for animation
                     );
                   } else {
                     showToast("User does not exist!");

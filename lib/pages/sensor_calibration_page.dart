@@ -129,7 +129,7 @@ class _SensorCalibratePageState extends State<SensorCalibratePage> {
     );
   }
 
-  SliverToBoxAdapter _buildBody(double screenHeight, List<String> sensors, BuildContext context) {
+  SliverFillRemaining _buildBody(double screenHeight, List<String> sensors, BuildContext context) {
     List<String> label = ['Sensor', 'Enter', 'Calibrate', 'Exit'];
     List<double> left = [0.0, 10.0, 30.0, 18.0];
     List<double> right = [8.0, 0.0, 18.0, 16.0];
@@ -148,7 +148,8 @@ class _SensorCalibratePageState extends State<SensorCalibratePage> {
       return containers;
     }
 
-    return SliverToBoxAdapter(
+    return SliverFillRemaining(
+      hasScrollBody: false,
       child: SizedBox(
         height: screenHeight * 0.7,
         child: Container(
@@ -253,6 +254,7 @@ class _SensorCalibratePageState extends State<SensorCalibratePage> {
                   textAlign: TextAlign.center,
                 ),
               ):Container(
+                constraints: BoxConstraints(minWidth: 200, maxWidth: 300),
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 3.0, horizontal: 12.0),
                 margin: const EdgeInsets.only(left: 20.0, right: 20.0, top: 6.0),

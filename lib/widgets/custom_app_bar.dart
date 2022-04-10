@@ -13,11 +13,20 @@ class CustomAppBar extends StatefulWidget with PreferredSizeWidget{
   final List<Data> dataList;
   final String userID;
   final String userEmail;
-  final String boatID;
+  Widget? dropDownWidget;
+  String boatID;
   String? currentPage;
   GlobalKey<ScaffoldState> currkey;
 
-  CustomAppBar({required this.dataList, this.currentPage, required this.userID, required this.userEmail, required this.boatID, required this.currkey});
+  CustomAppBar({
+    required this.dataList, 
+    this.currentPage, 
+    required this.userID, 
+    required this.userEmail, 
+    required this.boatID, 
+    required this.currkey,
+    this.dropDownWidget,
+  });
 
   @override
   _CustomAppBarState createState() => _CustomAppBarState();
@@ -27,6 +36,7 @@ class CustomAppBar extends StatefulWidget with PreferredSizeWidget{
 }
 
 class _CustomAppBarState extends State<CustomAppBar> {
+  var items = ['One', 'Two', 'Free', 'Four'];
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +63,10 @@ class _CustomAppBarState extends State<CustomAppBar> {
             const SizedBox(width: 10,),
             AppLargeText(text: "Ecosail"),
             Expanded(child: Container()),
+            kIsWeb? DropdownButtonHideUnderline(
+              child: widget.dropDownWidget!,
+            ): Container(),
+            const SizedBox(width: 3,),
             IconButton(
               icon: Icon(Icons.memory), 
               color: AppColors.btnColor2, 
