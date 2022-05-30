@@ -1,5 +1,6 @@
 import 'package:ecosail/gateway.dart';
 import 'package:ecosail/others/colors.dart';
+import 'package:ecosail/pages/change_password_page.dart';
 import 'package:ecosail/pages/view_sailboat_page.dart';
 import 'package:ecosail/pages/welcome_page.dart';
 import 'package:ecosail/widgets/app_large_text.dart';
@@ -12,7 +13,7 @@ class UserProfile extends StatelessWidget {
   final String userID;
   final String userEmail;
 
-  UserProfile({ Key? key, required this.dataList, required this.userID, required this.userEmail}) : super(key: key);
+  const UserProfile({ Key? key, required this.dataList, required this.userID, required this.userEmail}) : super(key: key);
   
   @override
   Widget build(BuildContext context) {
@@ -30,7 +31,7 @@ class UserProfile extends StatelessWidget {
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.account_circle,
                 size: 120.0,
                 color: AppColors.btnColor2,
@@ -40,16 +41,16 @@ class UserProfile extends StatelessWidget {
                 size: 24,
                 color: AppColors.btnColor2,
               ),
-              SizedBox(height: 70.0,),
+              const SizedBox(height: 70.0,),
               Container(
-                constraints: BoxConstraints(minWidth: 200, maxWidth: 300),
-                padding: EdgeInsets.symmetric(vertical: 10.0),
+                constraints: const BoxConstraints(minWidth: 200, maxWidth: 300),
+                padding: const EdgeInsets.symmetric(vertical: 10.0),
                 child: ResponsiveButton(
                   onTap: () {}, 
                   widget: Container(
                     width: screenSize.width * 0.70,
-                    padding: EdgeInsets.all(12.0),
-                    child: Text(
+                    padding: const EdgeInsets.all(12.0),
+                    child: const Text(
                       "Change Email", 
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -63,14 +64,19 @@ class UserProfile extends StatelessWidget {
                 ),
               ),
               Container(
-                constraints: BoxConstraints(minWidth: 200, maxWidth: 300),
-                padding: EdgeInsets.symmetric(vertical: 10.0),
+                constraints: const BoxConstraints(minWidth: 200, maxWidth: 300),
+                padding: const EdgeInsets.symmetric(vertical: 10.0),
                 child: ResponsiveButton(
-                  onTap: () {}, 
+                  onTap: () {
+                    Navigator.push(
+                      context, 
+                      PageRouteBuilder(pageBuilder: (_, __, ___) => const ChangePasswordPage()), //use MaterialPageRoute for animation
+                    );
+                  }, 
                   widget: Container(
                     width: screenSize.width * 0.70,
-                    padding: EdgeInsets.all(12.0),
-                    child: Text(
+                    padding: const EdgeInsets.all(12.0),
+                    child: const Text(
                       "Change Password", 
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -84,12 +90,12 @@ class UserProfile extends StatelessWidget {
                 ),
               ),
               Container(
-                constraints: BoxConstraints(minWidth: 200, maxWidth: 300),
-                padding: EdgeInsets.symmetric(vertical: 10.0),
+                constraints: const BoxConstraints(minWidth: 200, maxWidth: 300),
+                padding: const EdgeInsets.symmetric(vertical: 10.0),
                 child: ResponsiveButton(
                   widget: Container(
                     width: screenSize.width * 0.70,
-                    padding: EdgeInsets.all(12.0),
+                    padding: const EdgeInsets.all(12.0),
                     child: const Text(
                       "View Registered Sailboat", 
                       textAlign: TextAlign.center,
@@ -110,21 +116,21 @@ class UserProfile extends StatelessWidget {
                 ),
               ),
               Container(
-                constraints: BoxConstraints(minWidth: 200, maxWidth: 300),
+                constraints: const BoxConstraints(minWidth: 200, maxWidth: 300),
                 padding: const EdgeInsets.symmetric(vertical: 10.0),
                 child: ResponsiveButton(
                   onTap: () {
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(
-                        builder: (context) => WelcomePage(),
+                        builder: (context) => const WelcomePage(),
                       ), 
                       (route) => false,
                     );
                   }, 
                   widget: Container(
                     width: screenSize.width * 0.70,
-                    padding: EdgeInsets.all(12.0),
-                    child: Text(
+                    padding: const EdgeInsets.all(12.0),
+                    child: const Text(
                       "Sign Out", 
                       textAlign: TextAlign.center,
                       style: TextStyle(

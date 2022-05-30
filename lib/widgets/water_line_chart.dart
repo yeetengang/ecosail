@@ -1,9 +1,7 @@
 import 'dart:math';
 
-import 'package:ecosail/others/colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fl_chart/src/extensions/color_extension.dart';
-import 'package:fl_chart/src/utils/lerp.dart';
 import 'package:fl_chart/src/utils/utils.dart';
 import 'package:fl_chart/src/chart/line_chart/line_chart_helper.dart';
 import 'package:flutter/material.dart';
@@ -40,18 +38,27 @@ class _WaterLineChart2State extends State<WaterLineChart2> {
       child: Stack(
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.only(bottom: 20.0, left: 20.0, right: 20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Container(
-                  padding: const EdgeInsets.only(bottom:  15.0),
                   child: Text(
                     widget.title,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.black,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.only(bottom:  15.0, top: 5.0),
+                  child: const Text(
+                    "12 June 2022",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
                     ),
                   ),
                 ),
@@ -98,11 +105,13 @@ class _WaterLineChart2State extends State<WaterLineChart2> {
       gridData: FlGridData(
         show: true,
         checkToShowHorizontalLine: (value) => value % value == 0,
-        getDrawingHorizontalLine: (value) => FlLine(
-          color: Colors.black12,
-          strokeWidth: 1.0,
-          dashArray: [5],
-        ),
+        getDrawingHorizontalLine: (value) {
+          return FlLine(
+            color: Colors.black12,
+            strokeWidth: 1.0,
+            dashArray: [5],
+          );
+        },
         getDrawingVerticalLine: (value) {
           return FlLine(
             color: Colors.black12,
@@ -156,7 +165,11 @@ class _WaterLineChart2State extends State<WaterLineChart2> {
         ),
       ),
       borderData: FlBorderData(
-        show: false,
+        show: true,
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
+          left: BorderSide(color: Theme.of(context).dividerColor),
+        )
       ),
       lineBarsData: [
         LineChartBarData(

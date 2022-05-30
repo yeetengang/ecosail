@@ -21,7 +21,7 @@ Future<String> uploadLocation(String boatID, double latitude, double longitude, 
   final response = await http.post(
     Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
     headers: <String, String>{
-      'Content-Type': 'application/json',
+      'Accept': 'application/json',
     },
     body: jsonEncode(<String, String>{
       'boatID': boatID,
@@ -64,7 +64,7 @@ class MapApp extends StatefulWidget {
 class _MapAppState extends State<MapApp> {
   Future<String>? _futureLocation;
   MapController _mapController = MapController();
-  List<DragMarker> _markers = [];
+  final List<DragMarker> _markers = [];
   late double zoomValue;
   late LatLng centerPosition;
   late LatLng dragUpdatePosition;
@@ -83,7 +83,7 @@ class _MapAppState extends State<MapApp> {
         point: widget.pointer,
         width: 80.0,
         height: 80.0,
-        offset: Offset(0.0, -8.0),
+        offset: const Offset(0.0, -8.0),
         builder: (ctx) => Icon(
           Icons.sailing, 
           size: 50, 
@@ -105,7 +105,7 @@ class _MapAppState extends State<MapApp> {
           point: LatLng(items.latitude, items.longitude),
           width: 80.0,
           height: 80.0,
-          offset: Offset(0.0, -8.0),
+          offset: const Offset(0.0, -8.0),
           builder: (ctx) => Icon(
             Icons.location_on, 
             size: 50, 
@@ -186,26 +186,26 @@ class _MapAppState extends State<MapApp> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              margin: EdgeInsets.all(20.0),
-              padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+              margin: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
               decoration: BoxDecoration(
                 color: AppColors.mainColor,
                 borderRadius: BorderRadius.circular(40.0),
               ),
               child: Text(
                 'Latitude: ' + dragUpdatePosition.latitude.toStringAsFixed(4) + '\nLongtitude: ' + dragUpdatePosition.longitude.toStringAsFixed(4) + '\nDistance: ' + _getDistance(sailboatPosition.latitude, sailboatPosition.longitude, dragUpdatePosition.latitude, dragUpdatePosition.longitude), 
-                style: TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white),
               ),
             ),
             Expanded(child: Container()),
             Container(
-              padding: EdgeInsets.only(top: 20.0, right: 12.0),
+              padding: const EdgeInsets.only(top: 20.0, right: 12.0),
               child: Column(
                 children: [
                   MapPageButton(
-                    margin: EdgeInsets.only(bottom: 16.0), 
+                    margin: const EdgeInsets.only(bottom: 16.0), 
                     color: _editable? Colors.green : AppColors.mainColor,
-                    widget: _editable? Icon(Icons.add_location, color: Colors.white,) : Icon(Icons.location_on, color: AppColors.btnColor2,), 
+                    widget: _editable? const Icon(Icons.add_location, color: Colors.white,) : const Icon(Icons.location_on, color: AppColors.btnColor2,), 
                     onTap: () {
                       if (!_editable) {
                         setState(() {
@@ -226,13 +226,13 @@ class _MapAppState extends State<MapApp> {
                     }
                   ),
                   MapPageButton(
-                    margin: EdgeInsets.only(bottom: 16.0), 
-                    widget: Icon(Icons.cloud, color: AppColors.btnColor2,),
+                    margin: const EdgeInsets.only(bottom: 16.0), 
+                    widget: const Icon(Icons.cloud, color: AppColors.btnColor2,),
                     onTap: () {},
                   ),
                   MapPageButton(
-                    margin: EdgeInsets.only(bottom: 16.0), 
-                    widget: Icon(Icons.my_location, color: AppColors.btnColor2,),
+                    margin: const EdgeInsets.only(bottom: 16.0), 
+                    widget: const Icon(Icons.my_location, color: AppColors.btnColor2,),
                     onTap: () {},
                   ),
                 ],
@@ -250,9 +250,9 @@ class _MapAppState extends State<MapApp> {
         point: position,
         width: 80.0,
         height: 80.0,
-        offset: Offset(0.0, -8.0),
+        offset: const Offset(0.0, -8.0),
         draggable: _editable,
-        builder: (ctx) => Icon(Icons.edit_location, size: 50, color: Colors.red,),
+        builder: (ctx) => const Icon(Icons.edit_location, size: 50, color: Colors.red,),
         onDragStart:  (details,point) => print("Start point $point"), //The Lat Long when hold to drag
         onDragEnd:    (details,point) => print("End point $point"), //The Lat Long when release
         onDragUpdate: (details,point) {
@@ -348,7 +348,7 @@ class MapPageButton extends StatelessWidget {
             blurRadius: 3,
             color: Colors.black.withOpacity(0.4),
             spreadRadius: 2,
-            offset: Offset(1 ,1),
+            offset: const Offset(1 ,1),
           ),
         ],
       ),
@@ -419,7 +419,7 @@ Future<String> uploadLocation(String boatID, double latitude, double longitude, 
   final response = await http.post(
     Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
     headers: <String, String>{
-      'Content-Type': 'application/json',
+      'Accept': 'application/json',
     },
     body: jsonEncode(<String, String>{
       'boatID': boatID,

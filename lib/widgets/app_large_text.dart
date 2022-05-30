@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class AppLargeText extends StatelessWidget {
@@ -6,6 +5,7 @@ class AppLargeText extends StatelessWidget {
   final String text;
   final Color color;
   TextAlign? textAlign;
+  TextDecoration? decoration;
 
   //This accept value parameter when being called
   AppLargeText({ 
@@ -13,6 +13,7 @@ class AppLargeText extends StatelessWidget {
       this.size = 30, //Default Size 
       required this.text, 
       this.textAlign,
+      this.decoration,
       this.color = Colors.white //Default color is black
     }
   ) : super(key: key);
@@ -25,6 +26,7 @@ class AppLargeText extends StatelessWidget {
       style: TextStyle(
         color: color,
         fontSize: size,
+        decoration: decoration,
         fontWeight: FontWeight.bold,
       ),
     );

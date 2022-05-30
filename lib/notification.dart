@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 
 //Model for more than one data (Need add for single data, the structure returned is different)
 class NotificationDetails {

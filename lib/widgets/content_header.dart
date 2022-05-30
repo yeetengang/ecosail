@@ -45,8 +45,8 @@ class ContentHeader extends StatelessWidget {
           bottom: 130.0,
           child: ResponsiveButton(
             widget: Container(
-              padding: EdgeInsets.all(12.0),
-              child: Text(
+              padding: const EdgeInsets.all(12.0),
+              child: const Text(
                 "LOGIN", 
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -62,7 +62,7 @@ class ContentHeader extends StatelessWidget {
               //Navigator.pop(context);
               Navigator.push(
                 context, 
-                PageRouteBuilder(pageBuilder: (_, __, ___) => LoginPage()), //use MaterialPageRoute for animation
+                PageRouteBuilder(pageBuilder: (_, __, ___) => const LoginPage()), //use MaterialPageRoute for animation
               );
             },
           ),
@@ -72,8 +72,8 @@ class ContentHeader extends StatelessWidget {
           child: ResponsiveButton(
             width: 200.0, 
             widget: Container(
-              padding: EdgeInsets.all(12.0),
-              child: Text(
+              padding: const EdgeInsets.all(12.0),
+              child: const Text(
                 "SIGNUP", 
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -88,7 +88,7 @@ class ContentHeader extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context, 
-                PageRouteBuilder(pageBuilder: (_, __, ___) => RegisterPage()), //use MaterialPageRoute for animation
+                PageRouteBuilder(pageBuilder: (_, __, ___) => const RegisterPage()), //use MaterialPageRoute for animation
               );
             },
           ),

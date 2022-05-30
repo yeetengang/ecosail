@@ -9,9 +9,9 @@ import 'package:ecosail/widgets/water_bar_chart.dart';
 import 'package:flutter/material.dart';
 
 class ChartsPage extends StatefulWidget {
-  final List<Data> dataList;
+  List<Data> dataList;
 
-  const ChartsPage({required this.dataList});
+  ChartsPage({required this.dataList});
 
   @override
   _ChartsPageState createState() => _ChartsPageState();
@@ -27,11 +27,12 @@ class _ChartsPageState extends State<ChartsPage> {
   @override
   Widget build(BuildContext context) {
     final Size screenSize = MediaQuery.of(context).size;
+    widget.dataList = widget.dataList.reversed.toList();
 
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: CustomScrollView(
-        physics: ClampingScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         slivers: <Widget>[
           _buildHeader(),
           _buildBody(screenSize.height, screenSize.width),
@@ -40,7 +41,7 @@ class _ChartsPageState extends State<ChartsPage> {
             child: Container(
               height: screenSize.height * 0.625,
               width: screenSize.width,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(30.0), 
@@ -51,13 +52,13 @@ class _ChartsPageState extends State<ChartsPage> {
                 children: [
                   Container( //Chart Indicator & Chart Selection button
                     height: 60.0,
-                    padding: EdgeInsets.only(left: 20.0, top: 10.0, right: 20.0),
+                    padding: const EdgeInsets.only(left: 20.0, top: 10.0, right: 20.0),
                     child: Row(
                       children: <Widget>[
                         _buildChartIndicator(),
                         Expanded(child: Container()),
                         _buildChartSelectBtn(Icons.show_chart, 0),
-                        SizedBox(width: 10.0,),
+                        const SizedBox(width: 10.0,),
                         _buildChartSelectBtn(Icons.bar_chart, 1),
                       ],
                     ),
@@ -82,7 +83,7 @@ class _ChartsPageState extends State<ChartsPage> {
                           carouselController: sliderController,
                           itemCount: parameters.length,
                           itemBuilder: (BuildContext context, itemIndex, int pageViewIndex) =>
-                            widget.dataList[0].date == ""? Text("No Data"): _getBarCharts(parameters[itemIndex], widget.dataList, _currentSliderValue.toInt()),
+                            widget.dataList[0].date == ""? const Text("No Data"): _getBarCharts(parameters[itemIndex], widget.dataList, _currentSliderValue.toInt()),
                         ) : CarouselSlider.builder(
                           options: CarouselOptions(
                             height: double.infinity,
@@ -98,25 +99,25 @@ class _ChartsPageState extends State<ChartsPage> {
                           carouselController: sliderController,
                           itemCount: parameters.length,
                           itemBuilder: (BuildContext context, itemIndex, int pageViewIndex) =>
-                            widget.dataList[0].date == ""? Text("No Data"): _getLineCharts(parameters[itemIndex], widget.dataList, _currentSliderValue.toInt()),
+                            widget.dataList[0].date == ""? const Text("No Data"): _getLineCharts(parameters[itemIndex], widget.dataList, _currentSliderValue.toInt()),
                         ),
                       Row( //Left Right button row
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Container(width: 30, height: 50, color: Colors.white,
                               child: IconButton(
-                                icon: Icon(Icons.arrow_back_ios),
+                                icon: const Icon(Icons.arrow_back_ios),
                                 iconSize: 16.0,
-                                padding: EdgeInsets.only(left: 20.0),
+                                padding: const EdgeInsets.only(left: 20.0),
                                 onPressed: previous,
                               ),
                             ),
                             Expanded(child: Container()),
                             Container(width: 30, height: 50, color: Colors.white,
                               child: IconButton(
-                                icon: Icon(Icons.arrow_forward_ios),
+                                icon: const Icon(Icons.arrow_forward_ios),
                                 iconSize: 16.0,
-                                padding: EdgeInsets.only(right: 20.0),
+                                padding: const EdgeInsets.only(right: 20.0),
                                 onPressed: next,
                               ),
                             ),
@@ -332,7 +333,7 @@ class _ChartsPageState extends State<ChartsPage> {
             color: Colors.black.withOpacity(0.2),
             spreadRadius: 2,
             blurRadius: 2,
-            offset: Offset(0, 2)
+            offset: const Offset(0, 2)
           ),
         ]
       ),

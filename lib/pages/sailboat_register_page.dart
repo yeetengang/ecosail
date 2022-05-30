@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:ecosail/gateway.dart';
 import 'package:ecosail/others/colors.dart';
-import 'package:ecosail/pages/view_sailboat_page.dart';
 import 'package:ecosail/widgets/app_large_text.dart';
+import 'package:ecosail/widgets/form_content.dart';
 import 'package:ecosail/widgets/inner_app_bar.dart';
 import 'package:ecosail/widgets/responsive_btn.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +19,7 @@ Future<String> registerSailboat(String boatID, String boatName, String userID) a
   final response = await http.post(
     Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
     headers: <String, String>{
-      'Content-Type': 'application/json',
+      'Accept': 'application/json',
     },
     body: jsonEncode(<String, String>{
       'boatID': boatID,
@@ -43,7 +43,7 @@ class SailboatRegisterPage extends StatefulWidget {
   final String userID;
   final String userEmail;
   
-  SailboatRegisterPage({ Key? key, required this.dataList, required this.userID, required this.userEmail }) : super(key: key);
+  const SailboatRegisterPage({ Key? key, required this.dataList, required this.userID, required this.userEmail }) : super(key: key);
 
   @override
   _SailboatRegisterPageState createState() => _SailboatRegisterPageState();
@@ -53,6 +53,7 @@ class _SailboatRegisterPageState extends State<SailboatRegisterPage> {
   final idController = TextEditingController();
   final nameController = TextEditingController();
 
+  @override
   void dispose() {
     idController.dispose();
     nameController.dispose();
@@ -69,37 +70,45 @@ class _SailboatRegisterPageState extends State<SailboatRegisterPage> {
       backgroundColor: Colors.white,
       appBar: PreferredSize(
         preferredSize: Size(screenSize.width, 60),
-        child: InnerAppBar(),
+        child: InnerAppBar(dataList: const [],),
       ),
       body: CustomScrollView(
-        physics: ClampingScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         slivers: <Widget>[
+          _buildSailboatImage(screenSize, context),
           _buildSailboatForm(screenSize, context),
         ],
       )
     );
   }
 
-  SliverToBoxAdapter _buildSailboatForm(Size screenSize, BuildContext context) {
+  SliverToBoxAdapter _buildSailboatImage(Size screenSize, BuildContext context) {
     return SliverToBoxAdapter(
+      child: Container(
+        height: screenSize.height * 0.35,
+        width: screenSize.width, //If the screensize is more than mobile size, then fix this size
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('images/register_sailboat.jpg'),
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+    );
+  }
+
+  SliverFillRemaining _buildSailboatForm(Size screenSize, BuildContext context) {
+    return SliverFillRemaining(
+      hasScrollBody: false,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               Container(
-                height: screenSize.height * 0.35,
-                width: screenSize.width, //If the screensize is more than mobile size, then fix this size
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('images/register_sailboat.jpg'),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              Container(
-                width: screenSize.width * 0.8, //If more than mobile screen size then fix the size
-                padding: const EdgeInsets.symmetric(vertical: 24.0),
+                //width: screenSize.width * 0.8, //If more than mobile screen size then fix the size
+                //padding: const EdgeInsets.symmetric(vertical: 24.0),
                 child: AppLargeText(
                   text: 'Register Sailboat', 
                   textAlign: TextAlign.center, 
@@ -107,61 +116,59 @@ class _SailboatRegisterPageState extends State<SailboatRegisterPage> {
                   color: AppColors.mainColor,
                 ),
               ),
-              Container(
+              SizedBox(
                 width: screenSize.width * 0.7, //If more than mobile screen size then fix the size
                 child: Column(
                   children: [
-                    _generateFormContent('SAILBOAT ID', 14, idController),
-                    _generateFormContent('SAILBOAT NAME', 14, nameController),
-                    Container(
-                      padding: const EdgeInsets.only(top: 10.0),
-                      child: _generateFormButton(
-                        'Register', 
-                        screenSize.width * 0.7, 
-                        AppColors.mainColor,
-                        Colors.white,
-                        () async {
-                          //Button to register sailboat
-                          showToast("Registering sailboat...");
-                          String message = await registerSailboat(idController.text, nameController.text, widget.userID);
-                          showToast(message);
-                        }
-                      ),
+                    FormContent(
+                      label: 'SAILBOAT ID', 
+                      controller: idController, 
+                      obscure: false, 
+                      maxLength: 17,
                     ),
-                    Container(
-                      padding: const EdgeInsets.only(top: 10.0),
-                      child: _generateFormButton(
-                        'View Registered Sailboat', 
-                        screenSize.width * 0.7, 
-                        AppColors.btnColor2, 
-                        Colors.black,
-                        () {
-                          //Button to View Registered Sailboat
-                          Navigator.push(
-                            context, 
-                            PageRouteBuilder(pageBuilder: (_, __, ___) => ViewSailboat(dataList: widget.dataList, userID: widget.userID, userEmail: widget.userEmail,)), //use MaterialPageRoute for animation
-                          );
-                        }
-                      ),
+                    FormContent(
+                      label: 'SAILBOAT NAME', 
+                      controller: nameController, 
+                      obscure: false,
+                      maxLength: 14,
                     ),
-                    Container(
-                      padding: EdgeInsets.only(top: 14.0),
-                      child: ResponsiveButton(
-                        widget: Text(
-                          'Cancel', 
-                          style: TextStyle(
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.pop(context);
-                        },
-                        colors: Colors.transparent,
-                    ),
-                    )
                   ],
                 ),
               ),
+              Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.only(top: 10.0),
+                    child: _generateFormButton(
+                      'Register', 
+                      screenSize.width * 0.7, 
+                      AppColors.mainColor,
+                      Colors.white,
+                      () async {
+                        //Button to register sailboat
+                        showToast("Registering sailboat...");
+                        String message = await registerSailboat(idController.text, nameController.text, widget.userID);
+                        showToast(message);
+                      }
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.only(top: 14.0),
+                    child: ResponsiveButton(
+                      widget: const Text(
+                        'Cancel', 
+                        style: TextStyle(
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+                      colors: Colors.transparent,
+                    ),
+                  ),
+                ],
+              )
             ],
           )
         ],
@@ -169,7 +176,7 @@ class _SailboatRegisterPageState extends State<SailboatRegisterPage> {
     );
   }
 
-  TextFormField _generateFormContent(String label, int maxLength, TextEditingController controller) {
+  /*TextFormField _generateFormContent(String label, int maxLength, TextEditingController controller) {
     return TextFormField(
       controller: controller,
       maxLength: maxLength,
@@ -200,7 +207,7 @@ class _SailboatRegisterPageState extends State<SailboatRegisterPage> {
         height: 2.0
       ),
     );
-  }
+  }*/
 
   ResponsiveButton _generateFormButton(String label, double width, Color buttonColor, Color labelColor, Function() onTap) {
     return ResponsiveButton(
@@ -208,7 +215,7 @@ class _SailboatRegisterPageState extends State<SailboatRegisterPage> {
       onTap: onTap,
       widget: Container(
         width: width,
-        padding: EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(12.0),
         child: Text(
           label, 
           textAlign: TextAlign.center,

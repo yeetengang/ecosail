@@ -1,12 +1,10 @@
-import 'package:ecosail/gateway.dart';
 import 'package:ecosail/others/colors.dart';
-import 'package:ecosail/widgets/get_pages.dart';
 import 'package:flutter/material.dart';
 
 class NavigationDrawerWidget extends StatelessWidget {
   final List<Widget> widgetList;
 
-  NavigationDrawerWidget({ 
+  const NavigationDrawerWidget({ 
     Key? key,
     required this.widgetList
   }) : super(key: key);

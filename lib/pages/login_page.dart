@@ -1,7 +1,10 @@
-import 'dart:convert';
 
+import 'package:amazon_cognito_identity_dart_2/cognito.dart';
 import 'package:ecosail/bottom_nav_screen.dart';
+import 'package:ecosail/others/show_toast.dart';
+import 'package:ecosail/pages/forgot_password_page.dart';
 import 'package:ecosail/pages/register_page.dart';
+import 'package:ecosail/widgets/form_content.dart';
 import 'package:ecosail/widgets/responsive.dart';
 import 'package:flutter/material.dart';
 
@@ -9,16 +12,15 @@ import '../others/colors.dart';
 import '../widgets/app_large_text.dart';
 import '../widgets/reponsive_text.dart';
 import '../widgets/responsive_btn.dart';
-import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 
 Future<String> userlogin(String email, String password) async {
   String status = "User Login";
 
-  final response = await http.post(
+  /*final response = await http.post(
     Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
     headers: <String, String>{
-      'Content-Type': 'application/json',
+      'Accept': 'application/json',
     },
     body: jsonEncode(<String, String>{
       'email': email,
@@ -26,11 +28,59 @@ Future<String> userlogin(String email, String password) async {
       'status': status,
     }),
   );
+
   if (response.statusCode == 200) {
     return User.fromJson(jsonDecode(response.body)).userID;
   } else {
     return "";
+  }*/
+
+  final authDetails = AuthenticationDetails(
+    username: email,
+    password: password,
+  );
+
+  final userPool = CognitoUserPool(
+    'ap-southeast-1_LPPgObixx', 
+    '2fm8sfscl0uoah7eac3r7slabe'
+  );
+
+  final cognitoUser = CognitoUser(email, userPool);
+
+  CognitoUserSession? session;
+  try {
+    session = await cognitoUser.authenticateUser(authDetails);
+    //print(session?.getAccessToken().getJwtToken());
+    //print(session?.getAccessToken().getSub()); // Get userID
+    //print(session?.getAccessToken().getExpiration()); // Get token expiration time
+    //int? test = session?.getAccessToken().getExpiration();
+
+    //print(DateTime.fromMillisecondsSinceEpoch(test! * 1000));
+    //Return userID
+    return session!.getAccessToken().getSub().toString();
+  } on CognitoUserNewPasswordRequiredException {
+    // handle New Password challenge
+  } on CognitoUserMfaRequiredException {
+    // handle SMS_MFA challenge
+  } on CognitoUserSelectMfaTypeException {
+    // handle SELECT_MFA_TYPE challenge
+  } on CognitoUserMfaSetupException {
+    // handle MFA_SETUP challenge
+  } on CognitoUserTotpRequiredException {
+    // handle SOFTWARE_TOKEN_MFA challenge
+  } on CognitoUserCustomChallengeException {
+    // handle CUSTOM_CHALLENGE challenge
+  } on CognitoUserConfirmationNecessaryException {
+    // handle User Confirmation Necessary
+  } on CognitoClientException {
+    // handle Wrong Username and Password and Cognito Client
+    return "0";
+  } catch (e) {
+    // Unexpected error occured
+    return "0";
   }
+  
+  return "";
 }
 
 class User {
@@ -55,7 +105,9 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage>{
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  bool obscure = true;
 
+  @override
   void dispose() {
     emailController.dispose();
     passwordController.dispose();
@@ -66,36 +118,29 @@ class _LoginPageState extends State<LoginPage>{
   Widget build(BuildContext context) {
     final Size screenSize = MediaQuery.of(context).size;
 
-    if (screenSize.height < 600) {
-      return Scaffold(
-        resizeToAvoidBottomInset: true,
-        backgroundColor: Color.fromARGB(255, 118, 197, 233),
-        body: CustomScrollView(
-          physics: ClampingScrollPhysics(),
-          slivers: <Widget>[
-            SliverToBoxAdapter(
-              child: _buildContent(),
-            )
-          ],
-        ),
-      );
-    }
-
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: Color.fromARGB(255, 118, 197, 233),
-      body: _buildContent(),
+      backgroundColor: const Color.fromARGB(255, 118, 197, 233),
+      body: CustomScrollView(
+        physics: const ClampingScrollPhysics(),
+        slivers: <Widget>[
+          SliverToBoxAdapter(
+            child: _buildContent(screenSize),
+          )
+        ],
+      ),
     );
   }
 
-  SafeArea _buildContent() {
+  SafeArea _buildContent(Size screenSize) {
     return SafeArea(
       child: Align(
         alignment: Alignment.center,
         child: Container(
+          height: screenSize.height * 0.9,
         width: !Responsive.isMobile(context)? 420.0: double.infinity,
-        margin: EdgeInsets.all(24.0),
-        padding: EdgeInsets.symmetric(horizontal: 20.0),
+        margin: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20.0),
           color: Colors.white,
@@ -107,13 +152,13 @@ class _LoginPageState extends State<LoginPage>{
               children: [
                 AppLargeText(
                   text: "LOGIN", 
-                  color: Color.fromRGBO(0, 180, 216, 1),
+                  color: const Color.fromRGBO(0, 180, 216, 1),
                   size: 40,
                 ),
                 Container(
                   width: 12,
                   height: 12,
-                  margin: EdgeInsets.all(20.0),
+                  margin: const EdgeInsets.all(20.0),
                   decoration: BoxDecoration(
                     color: AppColors.btnColor1,
                     borderRadius: BorderRadius.circular(20.0)
@@ -121,18 +166,39 @@ class _LoginPageState extends State<LoginPage>{
                 ),
               ],
             ),
-            _generateFormContent('EMAIL', emailController),
+            FormContent(
+              label: 'EMAIL',
+              controller: emailController,
+              obscure: false, // No need to show this
+              onTap: () {
+
+              },  
+            ),
             Column(
               children: [
-                _generateFormContent('PASSWORD', passwordController),
+                FormContent(
+                  label: 'PASSWORD', 
+                  controller: passwordController, 
+                  obscure: obscure, 
+                  onTap: () {
+                    setState(() {
+                      obscure = !obscure;
+                    });
+                  }
+                ),
                 Container(
                 width: double.infinity,
-                margin: EdgeInsets.only(top: 12.0),
+                margin: const EdgeInsets.only(top: 12.0),
                 child: ResponsiveText(
                   text: "FORGOT PASSWORD",
                   isResponsive: true,
                   testAlign: TextAlign.right,
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context, 
+                      PageRouteBuilder(pageBuilder: (_, __, ___) => ForgotPasswordPage()), //use MaterialPageRoute for animation
+                    );
+                  },
                 ),
               ),
               
@@ -140,8 +206,13 @@ class _LoginPageState extends State<LoginPage>{
             ),
             ResponsiveButton(
               onTap: () async {
+
+                emailController.text = "yeetengang@gmail.com";
+                passwordController.text = "12345Ayt@60";
+
                 if (emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
                   showToast("Logging In...");
+
                   String userID = await userlogin(emailController.text, passwordController.text);
                   if (userID!="0"){
                     Navigator.pop(context);
@@ -152,14 +223,15 @@ class _LoginPageState extends State<LoginPage>{
                   } else {
                     showToast("User does not exist!");
                   }
+                  print(userID);
                 } else {
                   showToast("Email & Password cannot be empty");
                 }
               }, 
               width: 200.0,
               widget: Container(
-                padding: EdgeInsets.all(12.0),
-                child: Text(
+                padding: const EdgeInsets.all(12.0),
+                child: const Text(
                   "LOGIN", 
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -174,14 +246,14 @@ class _LoginPageState extends State<LoginPage>{
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("New to Ecosail?  "),
+                const Text("New to Ecosail?  "),
                 ResponsiveText(
                   text: "Sign Up Now", 
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
                       context, 
-                      PageRouteBuilder(pageBuilder: (_, __, ___) => RegisterPage()), //use MaterialPageRoute for animation
+                      PageRouteBuilder(pageBuilder: (_, __, ___) => const RegisterPage()), //use MaterialPageRoute for animation
                     );
                   }
                 )
@@ -191,48 +263,6 @@ class _LoginPageState extends State<LoginPage>{
         ),
       ),
       )
-    );
-  }
-
-  TextFormField _generateFormContent(String label, TextEditingController controller) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        isDense: true,
-        labelText: label,
-        labelStyle: const TextStyle(
-          color: Colors.black
-        ),
-        floatingLabelStyle: const TextStyle(
-          color: Colors.black
-        ),
-        border: UnderlineInputBorder(
-          borderSide: BorderSide(
-            color: Colors.grey.shade700
-          ),
-        ),
-        focusedBorder: UnderlineInputBorder(
-          borderSide: BorderSide(
-            color: Colors.grey.shade700
-          ),
-        ),
-        floatingLabelBehavior: FloatingLabelBehavior.always,
-      ),
-      cursorColor: Colors.grey[700],
-      style: const TextStyle(
-        color: Colors.black,
-        height: 2.0
-      ),
-    );
-  }
-
-  void showToast(String text) {
-    Fluttertoast.showToast(
-      msg: text,
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM,
-      backgroundColor: Colors.grey,
-      textColor: Colors.white,
     );
   }
 }

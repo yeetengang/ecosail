@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 
 //Model for more than one data (Need add for single data, the structure returned is different)
 class Gateway {
@@ -74,12 +73,12 @@ class Data{
   }
 
   static List<String> parseBoatID(boatJson) {
-    List<String> boatList = new List<String>.from(boatJson);
+    List<String> boatList = List<String>.from(boatJson);
     return boatList;
   }
 
   static List<String> parseBoatName(boatNameJson) {
-    List<String> boatNameList = new List<String>.from(boatNameJson);
+    List<String> boatNameList = List<String>.from(boatNameJson);
     return boatNameList;
   }
 }

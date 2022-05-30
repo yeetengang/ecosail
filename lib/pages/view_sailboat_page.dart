@@ -23,7 +23,7 @@ Future<Sailboat> getSailboats(String userID) async{
   final response = await http.post(
     Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
     headers: <String, String>{
-      'Content-Type': 'application/json',
+      'Accept': 'application/json',
     },
     body: jsonEncode(<String, String>{
       'userID': userID.toString(),
@@ -47,7 +47,7 @@ Future<String> deleteSailboat(String userID, String cloudID) async {
   final response = await http.post(
     Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
     headers: <String, String>{
-      'Content-Type': 'application/json',
+      'Accept': 'application/json',
     },
     body: jsonEncode(<String, String>{
       'userID': userID.toString(),
@@ -74,7 +74,7 @@ class ViewSailboat extends StatefulWidget {
 }
 
 class _ViewSailboatState extends State<ViewSailboat> {
-  Timer t = Timer(Duration(milliseconds: 5000), () {});
+  Timer t = Timer(const Duration(milliseconds: 5000), () {});
   CarouselController sliderController = CarouselController();
   late Future<Sailboat> futureSailboatList;
   int activeIndex = 0;
@@ -84,8 +84,8 @@ class _ViewSailboatState extends State<ViewSailboat> {
   void initState() {
     super.initState();
     futureSailboatList = getSailboats(widget.userID);
-    Timer.periodic(Duration(milliseconds: 5000), (t) {
-      if (this.mounted) {
+    Timer.periodic(const Duration(milliseconds: 5000), (t) {
+      if (mounted) {
         setState(() {
           futureSailboatList = getSailboats(widget.userID);
         });
@@ -110,7 +110,7 @@ class _ViewSailboatState extends State<ViewSailboat> {
         child: InnerAppBar(dataList: widget.dataList, currentPage: 'calibration',),
       ),
       body: CustomScrollView(
-        physics: ClampingScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         slivers: <Widget>[
           _buildHeader(screenSize.height),
           _buildBody(screenSize.height, screenSize.width),
@@ -130,8 +130,8 @@ class _ViewSailboatState extends State<ViewSailboat> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Expanded(child: Container()),
-              Icon(Icons.sailing, color: AppColors.btnColor2, size: 30.0,),
-              SizedBox(height: 20.0),
+              const Icon(Icons.sailing, color: AppColors.btnColor2, size: 30.0,),
+              const SizedBox(height: 20.0),
               AppLargeText(text: 'Registered Sailboat', color: AppColors.bigTextColor, size: 26,),
               Expanded(child: Container()),
             ],
@@ -177,7 +177,7 @@ class _ViewSailboatState extends State<ViewSailboat> {
                             color: Colors.black.withOpacity(0.2),
                             spreadRadius: 2,
                             blurRadius: 2,
-                            offset: Offset(2, 2)
+                            offset: const Offset(2, 2)
                           ),
                         ]
                       ),
@@ -186,7 +186,7 @@ class _ViewSailboatState extends State<ViewSailboat> {
                         children: [
                           Container(
                             height: screenHeight * 0.45 * 0.35,
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               borderRadius: BorderRadius.only(
                                 topLeft: Radius.circular(10.0),
                                 topRight: Radius.circular(10.0),
@@ -197,7 +197,7 @@ class _ViewSailboatState extends State<ViewSailboat> {
                               ),
                             ),
                           ),
-                          Positioned(
+                          const Positioned(
                             top: 16.0,
                             left: 20.0,
                             child: Icon(Icons.sailing, color: AppColors.pageBackground,),
@@ -205,31 +205,31 @@ class _ViewSailboatState extends State<ViewSailboat> {
                           Positioned(
                             top: (screenHeight * 0.45 * 0.35),
                             child: Container(
-                              margin: EdgeInsets.symmetric(vertical: 20.0),
+                              margin: const EdgeInsets.symmetric(vertical: 20.0),
                               child: Column(
                                 children: [
                                   Container(
-                                    padding: EdgeInsets.symmetric(vertical: 5.0),
-                                    child: Text('Sailboat Name:', style: TextStyle(fontWeight: FontWeight.w500), textAlign: TextAlign.center,),
+                                    padding: const EdgeInsets.symmetric(vertical: 5.0),
+                                    child: const Text('Sailboat Name:', style: TextStyle(fontWeight: FontWeight.w500), textAlign: TextAlign.center,),
                                   ),
                                   Container(
-                                    padding: EdgeInsets.symmetric(vertical: 5.0),
-                                    child: Text(snapshot.data!.sailboats[itemIndex].boatName, style: TextStyle(fontSize: 12.0,), textAlign: TextAlign.center,),
+                                    padding: const EdgeInsets.symmetric(vertical: 5.0),
+                                    child: Text(snapshot.data!.sailboats[itemIndex].boatName, style: const TextStyle(fontSize: 12.0,), textAlign: TextAlign.center,),
                                   ),
                                   Container(
-                                    padding: EdgeInsets.symmetric(vertical: 5.0),
-                                    child: Text('Sailboat ID:', style: TextStyle(fontWeight: FontWeight.w500), textAlign: TextAlign.center,),
+                                    padding: const EdgeInsets.symmetric(vertical: 5.0),
+                                    child: const Text('Sailboat ID:', style: TextStyle(fontWeight: FontWeight.w500), textAlign: TextAlign.center,),
                                   ),
                                   Container(
-                                    padding: EdgeInsets.symmetric(vertical: 5.0),
-                                    child: Text(snapshot.data!.sailboats[itemIndex].boatID, style: TextStyle(fontSize: 12.0,), textAlign: TextAlign.center,),
+                                    padding: const EdgeInsets.symmetric(vertical: 5.0),
+                                    child: Text(snapshot.data!.sailboats[itemIndex].boatID, style: const TextStyle(fontSize: 12.0,), textAlign: TextAlign.center,),
                                   ),
                                   IconButton(
                                     onPressed: () async {
                                       String message = await deleteSailboat(widget.userID, snapshot.data!.sailboats[itemIndex].boatID);
                                       showToast(message);
                                     }, 
-                                    icon: Icon(Icons.delete)
+                                    icon: const Icon(Icons.delete)
                                   ),
                                 ],
                               ),
@@ -249,7 +249,7 @@ class _ViewSailboatState extends State<ViewSailboat> {
           ),
           _buildChartIndicator(),
           Container(
-            padding: EdgeInsets.symmetric(vertical: 20.0),
+            padding: const EdgeInsets.symmetric(vertical: 20.0),
             child: ResponsiveButton(
               onTap: () {
                 Navigator.push(
@@ -259,8 +259,8 @@ class _ViewSailboatState extends State<ViewSailboat> {
               }, 
               widget: Container(
                 width: screenWidth * 0.70,
-                padding: EdgeInsets.all(12.0),
-                child: Text(
+                padding: const EdgeInsets.all(12.0),
+                child: const Text(
                   "Register New Sailboat", 
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -274,10 +274,10 @@ class _ViewSailboatState extends State<ViewSailboat> {
             ),
           ),
           Container(
-            padding: EdgeInsets.only(top: 5.0),
+            padding: const EdgeInsets.only(top: 5.0),
             child: FloatingActionButton(
               backgroundColor: AppColors.btnColor2,
-              child: Icon(
+              child: const Icon(
                 Icons.clear, 
                 color: AppColors.mainColor,
               ),
@@ -297,7 +297,7 @@ class _ViewSailboatState extends State<ViewSailboat> {
   Widget _buildChartIndicator() => AnimatedSmoothIndicator(
     activeIndex: activeIndex,
     count: parameters,
-    effect: ExpandingDotsEffect(
+    effect: const ExpandingDotsEffect(
       dotHeight: 8.0,
       dotWidth: 8.0,
       activeDotColor: AppColors.btnColor2,

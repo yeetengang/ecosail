@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:ecosail/WQIdata.dart';
 import 'package:ecosail/data/data.dart';
 import 'package:ecosail/gateway.dart';
 import 'package:ecosail/others/colors.dart';
@@ -24,23 +27,116 @@ import 'package:http/http.dart' as http;
 // Use POST method to get sensor Data
 Future<Gateway> getSensorData(String userID, String boatID) async{
   String status = "Get All";
+  try {
+    final response = await http.post(
+      Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
+      headers: <String, String>{
+        'Accept': 'application/json',
+      },
+      body: jsonEncode(<String, String>{
+        'userID': userID.toString(),
+        'status': status,
+        'boatID': boatID
+      }),
+    );
+    //print(response.body);
+    if (response.statusCode == 200) {
+      return Gateway.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to load gateway');
+    }
+  } on HttpException catch(e) {
+    print('error caught: $e');
+  }
+  
+  throw Exception("Weird Stuff");
+}
+
+// POST method
+Future<WQIData> getWQIData(String userID, String boatID, int dissolveOxy) async {
+  
+  try {
+    final response = await http.post(
+      Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage2/ecosail_getsensor'),
+      headers: <String, String>{
+        'Accept': 'application/json',
+      },
+      body: jsonEncode(<String, String>{
+        'userID': userID.toString(),
+        'boatID': boatID,
+        'dissolveOxy': dissolveOxy.toString(),
+        'pH': '6.65',
+        'temp': '30',
+        'turb': '5'
+      }),
+    );
+    print(response.body);
+    if (response.statusCode == 200) {
+      
+      return WQIData.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to load data');
+    }
+  } on HttpException catch(e) {
+    print('error cought: $e');
+  }
+
+  throw Exception("Error getting WQI data");
+}
+
+Future<Uint8List> getInterpolationImage(String userID, String boatID, int size) async {
+  String status = "Get Interpolation"; //Cannot directly process and retrieve otherwise will cause error
+  
+  final response = await http.post(
+    Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
+    headers: <String, String>{
+      'Accept': 'application/json',
+    },
+    body: jsonEncode(<String, String>{
+      'userID': userID,
+      'status': status,
+      'boatID': boatID,
+      'size': size.toString(),
+    }),
+  );
+  
+  print(response.body);
+  if (response.statusCode == 200) {
+    return const Base64Codec().decode(jsonDecode(response.body)['body']);
+  } else {
+    return const Base64Codec().decode(jsonDecode(response.body)['body']);
+  }
+}
+
+Future<Map<String, dynamic>> getInterpolationImage2(String userID, String boatID, int size) async {
+  String status = "Get Interpolation"; //Cannot directly process and retrieve otherwise will cause error
+  Map<String, dynamic> interpolationData;
 
   final response = await http.post(
     Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
     headers: <String, String>{
-      'Content-Type': 'application/json',
+      'Accept': 'application/json',
     },
     body: jsonEncode(<String, String>{
-      'userID': userID.toString(),
+      'userID': userID,
       'status': status,
-      'boatID': boatID
+      'boatID': boatID,
+      'size': size.toString(),
     }),
   );
   
+  interpolationData = {
+    "interpolation_image": jsonDecode(response.body)['body'],
+    "latitude_start": jsonDecode(response.body)['latitude_start'],
+    "latitude_end": jsonDecode(response.body)['latitude_end'],
+    "longitude_start": jsonDecode(response.body)['longitude_start'],
+    "longitude_end": jsonDecode(response.body)['longitude_end']
+  };
+
   if (response.statusCode == 200) {
-    return Gateway.fromJson(jsonDecode(response.body));
+    return interpolationData;
   } else {
-    throw Exception('Failed to load gateway');
+    return getInterpolationImage2(userID, boatID, 20);
   }
 }
 
@@ -56,17 +152,21 @@ class BottomNavScreen extends StatefulWidget {
 }
 
 class _BottomNavScreenState extends State<BottomNavScreen> {
-
+  
   int currentIndex = 0;
   String _selectedSailboat = '';
   String _selectedSailboatName = '';
+  int dissolveOxy = 0;
   late Future<String> _future;
-  late Timer t = Timer(Duration(milliseconds: 10), () {});
+  late Timer t = Timer(const Duration(milliseconds: 10), () {});
   late Future<Gateway> futureGateway;
   late List<Data> datalist;
   late List<Boat> boatList;
+  //late Future<WQIData> futureWQIData;
+  late Future<Uint8List> bytes;
   late Future<Sailboat> futureSailboat;
-  GlobalKey<ScaffoldState> _key = GlobalKey();
+  late Future<Map<String, dynamic>> interpolationData;
+  final GlobalKey<ScaffoldState> _key = GlobalKey();
 
   //A function for on click the tab
   void onTap(int index) {
@@ -78,11 +178,22 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
   @override
   void initState() {
     super.initState();
+    //bytes = getInterpolationImage(widget.userID, _selectedSailboat, 20);
+
+    interpolationData = getInterpolationImage2(widget.userID, _selectedSailboat, 20);
+    //futureWQIData = getWQIData('123', '123', 80);
+    
+    bytes = interpolationData.then((value) {
+      return const Base64Codec().decode(value['interpolation_image']);
+    });
+
     futureGateway = getSensorData(widget.userID, _selectedSailboat);
-    Timer.periodic(Duration(milliseconds: 5000), (t) {
+    Timer.periodic(const Duration(milliseconds: 5000), (t) {
+      if (mounted) {
         setState(() {
           futureGateway = getSensorData(widget.userID, _selectedSailboat);
         });
+      }
     });
 
     NotificationApi.init();
@@ -108,7 +219,11 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
   @override
   Widget build(BuildContext context) {
     final Size screenSize = MediaQuery.of(context).size;
-
+    /*futureWQIData.then((value) {
+      setState(() {
+        dissolveOxy = value.data[0].WQIdo;
+      });
+    });*/
     return Scaffold(
         body: Center(
           child: FutureBuilder<Gateway>(
@@ -116,14 +231,14 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 datalist = snapshot.data!.data;
-                print("Current Boat: " + _selectedSailboat);
+                //print("Current Boat: " + _selectedSailboat);
 
-                if (datalist[0].boatID.length > 0 && _selectedSailboat == '') {
+                if (datalist[0].boatID.isNotEmpty && _selectedSailboat == '') {
                   _selectedSailboat = datalist[0].boatID[0];
                   _selectedSailboatName = datalist[0].boatName[0];
                 }
-                print(datalist[0].boatID.length);
-                if (datalist[0].boatID.length == 0) {
+                //print(datalist[0].boatID.length);
+                if (datalist[0].boatID.isEmpty) {
                   _selectedSailboat = '';
                   _selectedSailboatName = '';
                 }
@@ -152,12 +267,12 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
                           borderRadius: BorderRadius.circular(10.0),
                           color: AppColors.btnColor2,
                         ),
-                        padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
                         child: DropdownButton(
                           value: _selectedSailboat, //This is the current sailboat ID
                           isDense: true,
                           elevation: 0,
-                          icon: Icon(Icons.sailing, color: AppColors.pageBackground,),
+                          icon: const Icon(Icons.sailing, color: AppColors.pageBackground,),
                           items: datalist[0].boatID.map((String value) {
                             return DropdownMenuItem<String>(
                               value: value,
@@ -190,18 +305,60 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
                       ),
                       SizedBox(
                         width: screenSize.width*0.8,
-                        child: getPages(currentIndex, datalist, _selectedSailboat, _selectedSailboatName, widget.userID),
+                        child: getPages(
+                          currentIndex, 
+                          datalist, 
+                          _selectedSailboat,
+                          _selectedSailboatName, 
+                          widget.userID, 
+                          interpolationData,
+                          IconButton(
+                            color: AppColors.btnColor2,
+                            iconSize: 36,
+                            splashColor: Colors.transparent,
+                            icon: const Icon(
+                              Icons.change_circle
+                            ),
+                            onPressed: () {
+                              print("test");
+                            }, 
+                          ),
+                        ),
                       ),
                     ],
-                  ) : getPages(currentIndex, datalist, _selectedSailboat, _selectedSailboatName, widget.userID),
-                  bottomNavigationBar: !kIsWeb? Container( //Show bottom Navigation Bar only if not a web version
+                  ) : getPages(
+                        currentIndex, 
+                        datalist, 
+                        _selectedSailboat,
+                        _selectedSailboatName, 
+                        widget.userID,  
+                        interpolationData,
+                        IconButton(
+                            color: AppColors.btnColor2,
+                            iconSize: 36,
+                            splashColor: Colors.transparent,
+                            icon: const Icon(
+                              Icons.change_circle
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                //bytes = getInterpolationImage(widget.userID, _selectedSailboat, 20);
+                                bytes = interpolationData.then((value) {
+                                  return const Base64Codec().decode(value['interpolation_image']);
+                                });
+                              });
+                            }, 
+                          ),
+                  ),
+                  bottomNavigationBar: !kIsWeb? Container( 
+                    //Show bottom Navigation Bar only if not a web version
                     decoration: BoxDecoration(
                       boxShadow: <BoxShadow>[
                         BoxShadow(
                           color: Colors.black.withOpacity(0.2),
                           blurRadius: 2,
                           spreadRadius: 2,
-                          offset: Offset(0, -2)
+                          offset: const Offset(0, -2)
                         ),
                       ]
                     ),
@@ -218,7 +375,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
                       showSelectedLabels: false,
                       showUnselectedLabels: false,
                       elevation: 0,
-                      items: [
+                      items: const [
                         BottomNavigationBarItem(
                           label:"Dashboard",
                           icon: Icon(Icons.home)),
@@ -235,7 +392,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
                     ),
                   ) : null,
                   floatingActionButton: !Responsive.isDesktop(context) && !kIsWeb ? FloatingActionButton(
-                    child: Icon(
+                    child: const Icon(
                       Icons.sailing, 
                       color: AppColors.pageBackground,
                     ),
@@ -294,7 +451,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
         ],
       ),
       const SizedBox(height: 30.0,),
-      Container(
+      SizedBox(
         height: screenSize.height * 0.35,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -346,7 +503,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
     builder: (context) => SlidingSheetDialog(
       cornerRadius: 30.0,
       avoidStatusBar: true,
-      snapSpec: SnapSpec(
+      snapSpec: const SnapSpec(
         initialSnap: 0.5,
         snappings: [0.4, 0.5, 1],
       ),
@@ -376,16 +533,16 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
     child: Column(
       children: [
         Container(
-          padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 10.0),
+          padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 10.0),
           child: Row(
             children: [
               Text(
-                datalist[0].boatID.length > 0? 'Select Sailboat': 'No Sailboat',
-                style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold,),
+                datalist[0].boatID.isNotEmpty? 'Select Sailboat': 'No Sailboat',
+                style: const TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold,),
               ),
               Expanded(child: Container()),
               ResponsiveButton(
-                widget: Icon(Icons.add), 
+                widget: const Icon(Icons.add), 
                 colors: Colors.transparent, 
                 onTap: () {
                   Navigator.push(
@@ -398,19 +555,19 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
           ),
         ),
         ListView.builder(
-          padding: EdgeInsets.only(top: 5.0),
+          padding: const EdgeInsets.only(top: 5.0),
           shrinkWrap: true,
           primary: false,
           itemCount: datalist[0].boatID.length,
           itemBuilder: (BuildContext context, int Index) {
             return ListTile(
-              contentPadding: EdgeInsets.only(left: 40.0),
-              leading: Icon(Icons.sailing, color: AppColors.pageBackground,),
-              selected: datalist[0].boatID.length > 0 ?datalist[0].boatID[Index] == _selectedSailboat:false, //If user have sailboat, auto select the first, else no need
+              contentPadding: const EdgeInsets.only(left: 40.0),
+              leading: const Icon(Icons.sailing, color: AppColors.pageBackground,),
+              selected: datalist[0].boatID.isNotEmpty ?datalist[0].boatID[Index] == _selectedSailboat:false, //If user have sailboat, auto select the first, else no need
               selectedTileColor: AppColors.sheetFocusColor,
               title: Text(
                 datalist[0].boatID[Index], 
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.black,
                 ),
               ),

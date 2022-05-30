@@ -6,7 +6,7 @@ class NotificationApi {
   static final onNotifications = BehaviorSubject<String?>();
 
   static Future _notificationDetails() async {
-    return NotificationDetails(
+    return const NotificationDetails(
       android: AndroidNotificationDetails(
         'channel id',
         'channel name',
@@ -19,8 +19,8 @@ class NotificationApi {
   }
 
   static Future init({bool initScheduled = false}) async {
-    final android = AndroidInitializationSettings('@mipmap/ic_launcher');
-    final settings = InitializationSettings(android: android);
+    const android = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const settings = const InitializationSettings(android: android);
 
     await _notifications.initialize(
       settings,

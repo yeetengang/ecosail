@@ -1,14 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:ecosail/bottom_nav_screen.dart';
-import 'package:ecosail/pages/notification_page.dart';
 import 'package:ecosail/pages/welcome_page.dart';
 import 'package:ecosail/gateway.dart';
-import 'package:ecosail/widgets/notification_api.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 // Use GET method to get sensor Data
 Future<Gateway> fetchGateway() async {
@@ -32,7 +30,7 @@ Future<Gateway> getSensorData(String userID, String boatID) async{
   final response = await http.post(
     Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
     headers: <String, String>{
-      'Content-Type': 'application/json',
+      'Accept': 'application/json',
     },
     body: jsonEncode(<String, String>{
       'userID': userID.toString(),
@@ -117,6 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+
     return MaterialApp(
       title: 'Ecosail',
       debugShowCheckedModeBanner: false,
@@ -153,7 +152,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       ),*/
-      home: WelcomePage(),
+      home: const WelcomePage(),
       /*home: Scaffold(
         body: Center(
           child: FutureBuilder<Gateway>(
@@ -183,7 +182,7 @@ Future<Album> createAlbum(String title) async {
   final response = await http.post(
     Uri.parse('https://jsonplaceholder.typicode.com/albums'), //Here pu the post link
     headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
+      'Accept': 'application/json; charset=UTF-8',
     },
     body: jsonEncode(<String, String>{
       'title': title,

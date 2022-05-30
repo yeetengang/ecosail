@@ -14,7 +14,7 @@ Future<PreviousLocationData> getPreviousLocationData(String userID, String boatI
   final response = await http.post(
     Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
     headers: <String, String>{
-      'Content-Type': 'application/json',
+      'Accept': 'application/json',
     },
     body: jsonEncode(<String, String>{
       "userID": userID,
@@ -110,7 +110,7 @@ class _LocationPageState extends State<LocationPage> {
           userID: widget.userID,
           lastActiveDate: widget.dataList[0].date,
           lastActiveTime: widget.dataList[0].time,
-          locationList: [],
+          locationList: const [],
         ),
       );
     }

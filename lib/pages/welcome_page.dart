@@ -4,7 +4,6 @@ import 'package:ecosail/widgets/app_large_text.dart';
 import 'package:ecosail/widgets/app_para_text.dart';
 import 'package:ecosail/widgets/content_header.dart';
 import 'package:ecosail/widgets/responsive.dart';
-import 'package:ecosail/widgets/top_bar_contents.dart';
 import 'package:ecosail/widgets/welcom_bar_contents.dart';
 import 'package:flutter/material.dart';
 
@@ -48,7 +47,7 @@ class _WelcomePageState extends State<WelcomePage> {
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
-          SliverToBoxAdapter(
+          const SliverToBoxAdapter(
             child: ContentHeader(featuredContent: ecosailContent),
           ),
           SliverPadding(
@@ -62,9 +61,9 @@ class _WelcomePageState extends State<WelcomePage> {
                       Column(
                         children: [
                           AppLargeText(text: about.title, color: AppColors.blackText,),
-                          SizedBox(height: 30,),
+                          const SizedBox(height: 30,),
                           AppParaText(text: about.description, color: AppColors.blackText,),
-                          SizedBox(height: 30,),
+                          const SizedBox(height: 30,),
                           Responsive.isTablet(context) && !Responsive.isMobile(context)? 
                           Column(
                             children: [
@@ -145,12 +144,12 @@ class _WelcomePageState extends State<WelcomePage> {
             child: Align(
               alignment: Alignment.bottomCenter,
               child: !Responsive.isMobile(context)? Container(
-                margin: EdgeInsets.only(top: 20.0),
+                margin: const EdgeInsets.only(top: 20.0),
                 alignment: Alignment.center,
                 width: double.infinity,
                 height: 46.0,
                 color: AppColors.pageBackground,
-                child: Text(
+                child: const Text(
                   "2021/2022 USM CAT400 NS21220108",
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -200,7 +199,7 @@ class DesciptionCards extends StatelessWidget {
             size: 24.0,
           ),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 20.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: AppParaText(
               text: description,
               color: Colors.black,

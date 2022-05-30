@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 class TopBarContents extends StatefulWidget {
   final double opacity;
 
-  TopBarContents(this.opacity);
+  const TopBarContents(this.opacity);
 
   @override
   _TopBarContentsState createState() => _TopBarContentsState();
@@ -33,7 +33,7 @@ class _TopBarContentsState extends State<TopBarContents> {
                   color: Colors.grey.withOpacity(0.8),
                   spreadRadius: 0,
                   blurRadius: 3,
-                  offset: Offset(0,3),
+                  offset: const Offset(0,3),
                 ),
               ],
               color: AppColors.mainColor,
@@ -49,7 +49,7 @@ class _TopBarContentsState extends State<TopBarContents> {
                         children: [
                           //Tab Bar Items
                           AppLargeText(text: "EcoSail"),
-                          Icon(Icons.notifications, size: 30,color: AppColors.bigTextColor,),
+                          const Icon(Icons.notifications, size: 30,color: AppColors.bigTextColor,),
                           Container(
                             width: 50,
                             height: 50,

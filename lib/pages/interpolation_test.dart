@@ -15,7 +15,7 @@ class MapsPage extends StatefulWidget {
 }
 
 class _MapsPageState extends State<MapsPage> {
-  List<bool> _selected = [false, true];
+  final List<bool> _selected = [false, true];
   CarouselController sliderController = CarouselController();
   int activeIndex = 0;
   double _currentSliderValue = 7;
@@ -28,7 +28,7 @@ class _MapsPageState extends State<MapsPage> {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: CustomScrollView(
-        physics: ClampingScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         slivers: <Widget>[
           _buildHeader(),
           _buildBody(screenSize.height, screenSize.width),
@@ -78,7 +78,7 @@ class _MapsPageState extends State<MapsPage> {
           Container(
             height: screenHeight * 0.625,
             width: screenWidth,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(30.0), 
@@ -89,7 +89,7 @@ class _MapsPageState extends State<MapsPage> {
               children: [
                 Container( //Chart Indicator & Chart Selection button
                   height: 60.0,
-                  padding: EdgeInsets.only(left: 20.0, top: 10.0, right: 20.0),
+                  padding: const EdgeInsets.only(left: 20.0, top: 10.0, right: 20.0),
                   child: Row(
                     children: <Widget>[
                       _buildChartIndicator(),
@@ -121,8 +121,8 @@ class _MapsPageState extends State<MapsPage> {
                         itemBuilder: (BuildContext context, itemIndex, int pageViewIndex) =>
                           //_getBarCharts(parameters[itemIndex], widget.dataList, _currentSliderValue.toInt()),
                           Container(
-                            margin: EdgeInsets.symmetric(vertical: 7.0, horizontal: 18.0),
-                            decoration: BoxDecoration(
+                            margin: const EdgeInsets.symmetric(vertical: 7.0, horizontal: 18.0),
+                            decoration: const BoxDecoration(
                               image: DecorationImage(
                                 image: AssetImage('images/filename.png'),
                                 //fit: BoxFit.cover,
@@ -135,18 +135,18 @@ class _MapsPageState extends State<MapsPage> {
                         children: [
                           Container(width: 30, height: 50, color: Colors.white,
                             child: IconButton(
-                              icon: Icon(Icons.arrow_back_ios),
+                              icon: const Icon(Icons.arrow_back_ios),
                               iconSize: 16.0,
-                              padding: EdgeInsets.only(left: 20.0),
+                              padding: const EdgeInsets.only(left: 20.0),
                               onPressed: previous,
                             ),
                           ),
                           Expanded(child: Container()),
                           Container(width: 30, height: 50, color: Colors.white,
                             child: IconButton(
-                              icon: Icon(Icons.arrow_forward_ios),
+                              icon: const Icon(Icons.arrow_forward_ios),
                               iconSize: 16.0,
-                              padding: EdgeInsets.only(right: 20.0),
+                              padding: const EdgeInsets.only(right: 20.0),
                               onPressed: next,
                             ),
                           ),

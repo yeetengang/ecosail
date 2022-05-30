@@ -18,7 +18,7 @@ Future<NotificationDetails> getNotification(String userID, String boatID) async{
   final response = await http.post(
     Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
     headers: <String, String>{
-      'Content-Type': 'application/json',
+      'Accept': 'application/json',
     },
     body: jsonEncode(<String, String>{
       'userID': userID,
@@ -67,7 +67,7 @@ class _NotificationPageState extends State<NotificationPage> {
         child: InnerAppBar(),
       ),
       body: CustomScrollView(
-        physics: ClampingScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         slivers: <Widget>[
           _buildHeader(),
           widget.boatID == ""? SliverToBoxAdapter(child: Container(),): _buildBody(),
@@ -131,8 +131,8 @@ class _NotificationPageState extends State<NotificationPage> {
           // By default, show a loading spinner.
           return Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
+            children: const [
+              SizedBox(
                 width: 50,
                 height: 50,
                 child: CircularProgressIndicator(),
@@ -168,11 +168,11 @@ class NotificationCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 20.0,),
+          const SizedBox(width: 20.0,),
           Expanded(
             child: Container(
-              padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
-              decoration: BoxDecoration(
+              padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
+              decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.only(
                   topRight: Radius.circular(8.0),
@@ -211,7 +211,7 @@ class NotificationCard extends StatelessWidget {
                     ],
                   ),
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Text(
                       type == "Water Pollution"? 'Boat: ' + details.boatName + '\nID: ' + details.boatID + '\n' + details.description
                         : 'Boat: ' + details.boatName + '\nID: ' + details.boatID,

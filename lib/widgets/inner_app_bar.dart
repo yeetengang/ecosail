@@ -1,7 +1,5 @@
 import 'package:ecosail/gateway.dart';
 import 'package:ecosail/others/colors.dart';
-import 'package:ecosail/pages/sensor_calibration_page.dart';
-import 'package:ecosail/pages/user_profile_page.dart';
 import 'package:ecosail/widgets/app_large_text.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +13,7 @@ class InnerAppBar extends StatefulWidget with PreferredSizeWidget{
   _InnerAppBarState createState() => _InnerAppBarState();
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
 class _InnerAppBarState extends State<InnerAppBar> {
@@ -30,7 +28,7 @@ class _InnerAppBarState extends State<InnerAppBar> {
             color: Colors.black.withOpacity(0.2),
             spreadRadius: 2,
             blurRadius: 2,
-            offset: Offset(0, 2)
+            offset: const Offset(0, 2)
           ),
         ]
       ),

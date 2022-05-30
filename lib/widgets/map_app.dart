@@ -21,7 +21,7 @@ Future<String> uploadLocation(String boatID, double latitude, double longitude, 
   final response = await http.post(
     Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
     headers: <String, String>{
-      'Content-Type': 'application/json',
+      'Accept': 'application/json',
     },
     body: jsonEncode(<String, String>{
       'boatID': boatID,
@@ -47,7 +47,7 @@ Future<String> deleteAllLocation(String boatID, String userID) async {
   final response = await http.post(
     Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
     headers: <String, String>{
-      'Content-Type': 'application/json',
+      'Accept': 'application/json',
     },
     body: jsonEncode(<String, String>{
       'boatID': boatID,
@@ -69,7 +69,7 @@ Future<String> startNavigating(String boatID, String userID) async {
   final response = await http.post(
     Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
     headers: <String, String>{
-      'Content-Type': 'application/json',
+      'Accept': 'application/json',
     },
     body: jsonEncode(<String, String>{
       'boatID': boatID,
@@ -114,7 +114,7 @@ class MapApp extends StatefulWidget {
 class _MapAppState extends State<MapApp> {
   Future<String>? _futureLocation;
   MapController _mapController = MapController();
-  List<DragMarker> _markers = [];
+  final List<DragMarker> _markers = [];
   late double zoomValue;
   late LatLng centerPosition;
   late LatLng dragUpdatePosition;
@@ -135,8 +135,8 @@ class _MapAppState extends State<MapApp> {
         point: widget.pointer,
         width: 80.0,
         height: 80.0,
-        offset: Offset(0.0, -8.0),
-        builder: (ctx) => widget.lastActiveDate == ""? Icon(
+        offset: const Offset(0.0, -8.0),
+        builder: (ctx) => widget.lastActiveDate == ""? const Icon(
           Icons.sailing, 
           size: 0, 
           color: Colors.transparent,
@@ -155,15 +155,15 @@ class _MapAppState extends State<MapApp> {
       ),
     );
 
-    if (widget.locationList.length > 0) {
+    if (widget.locationList.isNotEmpty) {
       for (var items in widget.locationList) {
         initialPoints.add(LatLng(items.latitude, items.longitude));
         _markers.add(
           DragMarker(
-            point: LatLng(items.latitude, items.longitude),
+            point: LatLng(items.latitude + 0.00008, items.longitude), // 0.0008 to adjust this shart edge point to the location
             width: 80.0,
             height: 80.0,
-            offset: Offset(0.0, -8.0),
+            offset: const Offset(0.0, -8.0),
             builder: (ctx) => Icon(
               Icons.location_on, 
               size: 50, 
@@ -248,35 +248,36 @@ class _MapAppState extends State<MapApp> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              margin: EdgeInsets.all(20.0),
-              padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+              margin: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
               decoration: BoxDecoration(
                 color: _editable? Colors.green : AppColors.mainColor,
                 borderRadius: BorderRadius.circular(40.0),
               ),
               child: _editable? Text(
                 'Latitude: ' + dragUpdatePosition.latitude.toStringAsFixed(8) + '\nLongtitude: ' + dragUpdatePosition.longitude.toStringAsFixed(8) + '\nDistance: ' + _getDistance(sailboatPosition.latitude, sailboatPosition.longitude, dragUpdatePosition.latitude, dragUpdatePosition.longitude), 
-                style: TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white),
               ): Text(
                 'Latitude: ' + widget.boatLatitude.toStringAsFixed(8) + '\nLongtitude: ' + widget.boatLongitude.toStringAsFixed(8) + '\nDistance: ' + currentDistance, 
-                style: TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white),
               ),
             ),
             Expanded(child: Container()),
             Container(
-              padding: EdgeInsets.only(top: 20.0, right: 12.0),
+              padding: const EdgeInsets.only(top: 20.0, right: 12.0),
               child: Column(
                 children: [
                   MapPageButton(
-                    margin: EdgeInsets.only(bottom: 16.0), 
+                    margin: const EdgeInsets.only(bottom: 16.0), 
                     color: _editable? Colors.green : AppColors.mainColor,
-                    widget: _editable? Icon(Icons.add_location, color: Colors.white,) : Icon(Icons.location_on, color: AppColors.btnColor2,), 
+                    widget: _editable? const Icon(Icons.add_location, color: Colors.white,) : const Icon(Icons.location_on, color: AppColors.btnColor2,), 
                     onTap: () {
                       if (!_editable) {
                         setState(() {
                           _editable = true;
                           showToast("Drag red marker to set location");
-                          _createNewMarker(centerPosition);
+                          //_createNewMarker(centerPosition);
+                          _createNewMarker(LatLng(centerPosition.latitude + 0.00015, centerPosition.longitude));
                           _mapController.move(centerPosition, zoomValue);
                           dragUpdatePosition = centerPosition;
                         });
@@ -297,8 +298,8 @@ class _MapAppState extends State<MapApp> {
                     }
                   ),
                   MapPageButton(
-                    margin: EdgeInsets.only(bottom: 16.0), 
-                    widget: Icon(Icons.delete, color: AppColors.btnColor2,),
+                    margin: const EdgeInsets.only(bottom: 16.0), 
+                    widget: const Icon(Icons.delete, color: AppColors.btnColor2,),
                     onTap: () async {
                       showToast("Deleting Pin Points...");
                       showToast(await deleteAllLocation(widget.boatID, widget.userID));
@@ -306,8 +307,8 @@ class _MapAppState extends State<MapApp> {
                     },
                   ),
                   MapPageButton(
-                    margin: EdgeInsets.only(bottom: 16.0), 
-                    widget: Icon(Icons.my_location, color: AppColors.btnColor2,),
+                    margin: const EdgeInsets.only(bottom: 16.0), 
+                    widget: const Icon(Icons.my_location, color: AppColors.btnColor2,),
                     onTap: () {
                       setState(() {
                         //Move the camera to follow the sailboat
@@ -316,13 +317,10 @@ class _MapAppState extends State<MapApp> {
                     },
                   ),
                   MapPageButton(
-                    margin: EdgeInsets.only(bottom: 16.0), 
-                    widget: Icon(Icons.play_arrow_rounded, color: AppColors.btnColor2,),
-                    onTap: () {
-                      setState(() {
-                        //Start the navigation
-
-                      });
+                    margin: const EdgeInsets.only(bottom: 16.0), 
+                    widget: const Icon(Icons.play_arrow_rounded, color: AppColors.btnColor2,),
+                    onTap: () async {
+                      showToast(await startNavigating(widget.boatID, widget.userID));
                     },
                   ),
                 ],
@@ -335,19 +333,28 @@ class _MapAppState extends State<MapApp> {
   }
 
   void _createNewMarker(LatLng position) {
+    // 0.00015 is the offset to adjust the Icon to make it have the sharp edge point to the correct position (Usually it shows up on the center of the Icon instead of the sharp edge)
     _markers.add(
       DragMarker(
         point: position,
-        width: 80.0,
-        height: 80.0,
-        offset: Offset(0.0, -8.0),
+        width: 30.0,
+        height: 40.0,
+        //offset: Offset(0.0, -8.0),
         draggable: _editable,
-        builder: (ctx) => Icon(Icons.edit_location, size: 50, color: Colors.red,),
-        onDragStart:  (details,point) => print("Start point $point"), //The Lat Long when hold to drag
-        onDragEnd:    (details,point) => print("End point $point"), //The Lat Long when release
+        builder: (ctx) => Stack(
+          clipBehavior: Clip.none, children: const [
+            //Container(color: Colors.blue,),
+            Positioned(
+              left: -10.0,
+              child: Icon(Icons.edit_location, size: 50, color: Colors.red,)
+            ),
+          ],
+        ),
+        //onDragStart:  (details,point) => print("Start point $point"), //The Lat Long when hold to drag
+        //onDragEnd:    (details,point) => print("End point $point"), //The Lat Long when release
         onDragUpdate: (details,point) {
           setState(() {
-            dragUpdatePosition = point;
+            dragUpdatePosition = LatLng(point.latitude - 0.00015, point.longitude);
           });
         }, //The Lat and Long when drag
         updateMapNearEdge: false,
@@ -442,7 +449,7 @@ class MapPageButton extends StatelessWidget {
             blurRadius: 3,
             color: Colors.black.withOpacity(0.4),
             spreadRadius: 2,
-            offset: Offset(1 ,1),
+            offset: const Offset(1 ,1),
           ),
         ],
       ),

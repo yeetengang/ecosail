@@ -3,7 +3,6 @@ import 'package:ecosail/others/colors.dart';
 import 'package:ecosail/pages/notification_page.dart';
 import 'package:ecosail/pages/sensor_calibration_page.dart';
 import 'package:ecosail/pages/user_profile_page.dart';
-import 'package:ecosail/widgets/NavigationDrawerWidget.dart';
 import 'package:ecosail/widgets/app_large_text.dart';
 import 'package:ecosail/widgets/responsive.dart';
 import 'package:flutter/foundation.dart';
@@ -32,7 +31,7 @@ class CustomAppBar extends StatefulWidget with PreferredSizeWidget{
   _CustomAppBarState createState() => _CustomAppBarState();
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
 class _CustomAppBarState extends State<CustomAppBar> {
@@ -49,7 +48,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
             color: Colors.black.withOpacity(0.2),
             spreadRadius: 2,
             blurRadius: 2,
-            offset: Offset(0, 2)
+            offset: const Offset(0, 2)
           ),
         ]
       ),
@@ -59,7 +58,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
             Responsive.isTablet(context) && kIsWeb? IconButton(onPressed: () {
               //Show navigation drawer menu when it is a web and is tablet size only
               widget.currkey.currentState?.openDrawer();
-            }, icon: Icon(Icons.dehaze), color: Colors.white,) : Container(),
+            }, icon: const Icon(Icons.dehaze), color: Colors.white,) : Container(),
             const SizedBox(width: 10,),
             AppLargeText(text: "Ecosail"),
             Expanded(child: Container()),
@@ -68,7 +67,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
             ): Container(),
             const SizedBox(width: 3,),
             IconButton(
-              icon: Icon(Icons.memory), 
+              icon: const Icon(Icons.memory), 
               color: AppColors.btnColor2, 
               splashColor: Colors.transparent, 
               highlightColor: Colors.transparent, 
@@ -82,7 +81,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
             ),
             const SizedBox(width: 3,),
             IconButton(
-              icon: Icon(Icons.notifications_none), 
+              icon: const Icon(Icons.notifications_none), 
               color: AppColors.btnColor2, 
               splashColor: Colors.transparent, 
               highlightColor: Colors.transparent,

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math';
 import 'package:ecosail/others/colors.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -35,20 +34,29 @@ class WaterBarChartState extends State<WaterBarChart> {
       child: Stack(
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.only(bottom: 20.0, left: 20.0, right: 20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               mainAxisSize: MainAxisSize.max,
               children: <Widget>[
                 Container(
-                  padding: const EdgeInsets.only(bottom:  15.0),
                   child: Text(
                     widget.title,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.black,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.only(bottom:  15.0, top: 5.0),
+                  child: const Text(
+                    "12 June 2022",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
                     ),
                   ),
                 ),
@@ -192,38 +200,34 @@ class WaterBarChartState extends State<WaterBarChart> {
             fontWeight: FontWeight.w500
           ),
           getTitles: (value) {
-            //Adjust range of y-axis here
-            //print((value - value.truncate()).toStringAsFixed(1));
-            //print(value);
-            /*if (value == yMax) {
-              return yMax.toString();
-            } else if(((value - value.truncate()) * 10).toInt() % 2 == 0) {
-              return value.toStringAsFixed(1);
-            }
-            return '';*/
             return value.toStringAsFixed(1);
-            /*if (value == 0) {
-              return '0';
-            } 
-            else if (value % 5 == 0) {
-              return '${value ~/ 5 * 5}';
-            }
-            return '';*/
           }
         ),
       ),
-      borderData: FlBorderData(
-        show: false,
+      borderData: yMax <=0.0? FlBorderData(
+        show: true,
+        border: Border(
+          top: BorderSide(color: Theme.of(context).dividerColor),
+          left: BorderSide(color: Theme.of(context).dividerColor),
+        )
+      ): FlBorderData(
+        show: true,
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
+          left: BorderSide(color: Theme.of(context).dividerColor),
+        )
       ),
       barGroups: showingGroups(),
       gridData: FlGridData(
         show: true,
         checkToShowHorizontalLine: (value) => value % value == 0, //? value % 5 == 0 | value % value == 0 | ((value - value.truncate()) * 10).toInt() % 2 == 0
-        getDrawingHorizontalLine: (value) => FlLine(
+        getDrawingHorizontalLine: (value) { 
+          return FlLine(
           color: Colors.black12,
           strokeWidth: 1.0,
           dashArray: [5],
-        ),
+          );
+        },
         getDrawingVerticalLine: (value) => FlLine(
           strokeWidth: 0.0,
         ),

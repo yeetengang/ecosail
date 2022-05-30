@@ -12,19 +12,19 @@ class NotificationDetailsPage extends StatefulWidget {
   final String title;
   final Details details;
 
-  NotificationDetailsPage({
+  const NotificationDetailsPage({
     Key? key,
     required this.title,
     required this.details,
   }) : super(key: key);
 
+  @override
   _NotificationDetailsPageState createState() => _NotificationDetailsPageState();
 }
 
 class _NotificationDetailsPageState extends State<NotificationDetailsPage> {
   List<DragMarker> _markers = [];
   late LatLng pointer;
-  
 
   @override
   void initState() {
@@ -36,26 +36,25 @@ class _NotificationDetailsPageState extends State<NotificationDetailsPage> {
   Widget build(BuildContext context) {
     final Size screenSize = MediaQuery.of(context).size;
     
-    print(pointer.latitude);
-
+    _markers = [];
     _markers.add(
       DragMarker(
         point: pointer,
-        width: 200.0,
+        width: 250.0,
         height: 100.0,
-        offset: Offset(0.0, -8.0),
+        offset: const Offset(0.0, -8.0),
         builder: (ctx) => Column(
           children: [
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
-              margin: EdgeInsets.only(bottom: 10.0),
+              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
+              margin: const EdgeInsets.only(bottom: 10.0),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(40),
                 color: Colors.white,
               ),
               child: Text(pointer.latitude.toString() + ', ' + pointer.longitude.toString()),
             ),
-            Icon(
+            const Icon(
               Icons.location_on, 
               size: 50, 
               color: Colors.red,
@@ -75,7 +74,7 @@ class _NotificationDetailsPageState extends State<NotificationDetailsPage> {
         child: InnerAppBar(currentPage: 'calibration',),
       ),
       body: CustomScrollView(
-        physics: ClampingScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         slivers: <Widget>[
           _buildHeader(screenSize.height, context, pointer),
         ],
@@ -91,15 +90,15 @@ class _NotificationDetailsPageState extends State<NotificationDetailsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 30.0),
+              padding: const EdgeInsets.symmetric(horizontal: 30.0),
               child: AppLargeText(text: widget.title, color: Colors.black, size: 26,),
             ),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 30.0, vertical: 10.0),
-              child: Text('Boat Name: ' + widget.details.boatName + '\nBoat ID: ' + widget.details.boatID, style: TextStyle(height: 1.3),),
+              padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 10.0),
+              child: Text('Boat Name: ' + widget.details.boatName + '\nBoat ID: ' + widget.details.boatID, style: const TextStyle(height: 1.3),),
             ),
             Container(
-              margin: EdgeInsets.symmetric(vertical: 14.0),
+              margin: const EdgeInsets.symmetric(vertical: 14.0),
               height: screenHeight * 0.3,
               color: Colors.blue,
               child: FlutterMap(
@@ -124,14 +123,14 @@ class _NotificationDetailsPageState extends State<NotificationDetailsPage> {
               ),
             ),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 30.0, vertical: 10.0),
+              padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 10.0),
               child: widget.title == "Water Pollution" ? 
                 Text('Date & Time\t: ' + widget.details.dayName.split("day")[0] + " " + widget.details.datetime.split(" ")[0] + " " + DateFormat.jm().format(DateFormat("hh:mm:ss").parse(widget.details.datetime.split(" ")[1]))):
                 Text('Last Seen\t: ' + widget.details.dayName.split("day")[0] + " " + widget.details.datetime.split(" ")[0] + " " + DateFormat.jm().format(DateFormat("hh:mm:ss").parse(widget.details.datetime.split(" ")[1]))),
             ),
             widget.title == "Water Pollution" ? Container(
-              padding: EdgeInsets.symmetric(horizontal: 30.0, vertical: 14.0),
-              child: Text(
+              padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 14.0),
+              child: const Text(
                 'Sensor Value',
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
@@ -139,17 +138,17 @@ class _NotificationDetailsPageState extends State<NotificationDetailsPage> {
                 ),
               ),
             ): Container(
-              padding: EdgeInsets.symmetric(horizontal: 30.0, vertical: 10.0),
-              child: widget.title == "Sensors & Sailboat"? Text("About: \n\nNavigation not complete yet no updates from sensors and sailboat."): 
-                  Text("About: \n\nSailboat Navigation Complete!\nAll pinned location are traversed, sailboat is going back to starting point."),
+              padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 10.0),
+              child: widget.title == "Sensors & Sailboat"? const Text("About: \n\nNavigation not complete yet no updates from sensors and sailboat."): 
+                  const Text("About: \n\nSailboat Navigation Complete!\nAll pinned location are traversed, sailboat is going back to starting point."),
             ),
             widget.title == "Water Pollution" ? Container(
-              padding: EdgeInsets.symmetric(horizontal: 30.0, vertical: 10.0),
+              padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 10.0),
               child: Row(
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    children: const [
                       Text('Temperature', style: TextStyle(height: 1.3),),
                       Text('pH', style: TextStyle(height: 1.3),),
                       Text('Electrical Conductivity', style: TextStyle(height: 1.3),),
@@ -171,13 +170,13 @@ class _NotificationDetailsPageState extends State<NotificationDetailsPage> {
               )
             ): Container(),
             Container(
-              padding: EdgeInsets.only(top: 10.0),
+              padding: const EdgeInsets.only(top: 10.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   FloatingActionButton(
                     backgroundColor: AppColors.mainColor,
-                    child: Icon(
+                    child: const Icon(
                       Icons.clear, 
                       color: AppColors.btnColor2,
                     ),
