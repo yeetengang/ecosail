@@ -1,29 +1,70 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:ecosail/WQIdata.dart';
 import 'package:ecosail/others/dragmarker.dart';
 import 'package:ecosail/widgets/app_large_text.dart';
 import 'package:ecosail/widgets/water_line_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:http/http.dart' as http;
 
 import '../widgets/inner_app_bar.dart';
+
+Future<Map<String, dynamic>> getWQISpatialImage(String userID, String boatID, int size, String dataType, String tripID) async {
+  String status = "Get Interpolation"; //Cannot directly process and retrieve otherwise will cause error
+  Map<String, dynamic> interpolationData;
+
+  final response = await http.post(
+    Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
+    headers: <String, String>{
+      'Accept': 'application/json',
+    },
+    body: jsonEncode(<String, String>{
+      'userID': userID,
+      'status': status,
+      'boatID': boatID,
+      'tripID': tripID,
+      'size': size.toString(),
+      'type': dataType
+    }),
+  );
+  
+  interpolationData = {
+    "interpolation_image": jsonDecode(response.body)['body'],
+    "latitude_start": jsonDecode(response.body)['latitude_start'],
+    "latitude_end": jsonDecode(response.body)['latitude_end'],
+    "longitude_start": jsonDecode(response.body)['longitude_start'],
+    "longitude_end": jsonDecode(response.body)['longitude_end']
+  };
+
+  if (response.statusCode == 200) {
+    print(boatID + " " + dataType + " " + tripID);
+    return interpolationData;
+  } else {
+    return getWQISpatialImage(userID, boatID, 20, dataType, tripID);
+  }
+}
 
 class WQIDetailsPage extends StatefulWidget {
   final String boatName;
   final String boatID;
-  final double latitude;
-  final double longitude;
+  final String userID;
   final int overallWQI;
-  //final List<int> wqiList;
+  final String tripID;
+  final List<WaterQualityData> WQIList;
 
   const WQIDetailsPage({ 
     Key? key,
     required this.boatName,
     required this.boatID,
-    required this.latitude,
-    required this.longitude,
+    required this.tripID,
     required this.overallWQI,
-    //required this.wqiList
+    required this.WQIList,
+    required this.userID
   }) : super(key: key);
 
   @override
@@ -31,20 +72,40 @@ class WQIDetailsPage extends StatefulWidget {
 }
 
 class _WQIDetailsPageState extends State<WQIDetailsPage> {
-  late LatLng pointer;
+  late Future<Map<String, dynamic>> interpolationData;
+  late Timer t = Timer(const Duration(milliseconds: 10), () {});
+  double latitudeCenter = 0.0;
+  double longitudeCenter = 0.0;
   CarouselController sliderController = CarouselController();
   int activeIndex = 0;
+  //MapController _mapController = MapController();
+  final List<DragMarker> _markers = [];
   
   @override
   void initState() {
     super.initState();
-    pointer = LatLng(widget.latitude, widget.longitude);
+    interpolationData = getWQISpatialImage(widget.userID, widget.boatID, 20, 'WQI', widget.tripID);
+    
+    Timer.periodic(const Duration(seconds: 65), (t) {
+      if (mounted) {
+        print("refreshing...");
+        setState(() {
+          interpolationData = getWQISpatialImage(widget.userID, widget.boatID, 20, 'WQI', widget.tripID);
+        });
+      }
+    });
+  }
+
+    @override
+  void dispose() {
+    super.dispose();
+    t.cancel();
   }
 
   @override
   Widget build(BuildContext context) {
     final Size screenSize = MediaQuery.of(context).size;
-    
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: PreferredSize(
@@ -78,7 +139,7 @@ class _WQIDetailsPageState extends State<WQIDetailsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Boat Name: ' + widget.boatName + '\nBoat ID: ' + widget.boatID, style: const TextStyle(height: 1.3),),
-                  Text('Num. Sampling Data: ' + 20.toString() + '\nCollection Date: ' + '26 May 2022', style: const TextStyle(height: 1.3),),
+                  Text('Num. Sampling Data: ' + widget.WQIList.length.toString() + '\nCollection Date: ' + widget.WQIList[0].dataTime, style: const TextStyle(height: 1.3),),
                 ],
               ),
             ),
@@ -119,71 +180,9 @@ class _WQIDetailsPageState extends State<WQIDetailsPage> {
     );
   }
 
-  SliverFillRemaining _buildBody(double screenHeight, double screenWidth) {
-    /*return SliverFillRemaining(
-      hasScrollBody: false,
+  SliverToBoxAdapter _buildBody(double screenHeight, double screenWidth) {
+    return SliverToBoxAdapter(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 30.0,),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              child: Divider(
-                color: Colors.black.withOpacity(0.8),
-              ),
-            ),
-            Container(
-              padding: EdgeInsets.symmetric(vertical: 5.0),
-              child: AppLargeText(
-                text: "Spatial Analysis", 
-                color: Colors.black, 
-                size: 22,
-                decoration: TextDecoration.underline,
-              ),
-            ),
-            /*Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  margin: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 30.0),
-                  height: 300,
-                  color: Colors.blue,
-                  child: FlutterMap(
-                    options: MapOptions(
-                      allowPanningOnScrollingParent: false,
-                      onPositionChanged: (mapPostion, moved) {null;},
-                      center: pointer, 
-                      zoom: 18.0,
-                      plugins: [
-                        DragMarkerPlugin(),
-                      ],
-                    ),
-                    nonRotatedLayers: [
-                      TileLayerOptions(
-                        urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                        subdomains: ['a', 'b', 'c'],
-                      ),
-                    ],
-                  ),
-                ),
-                Center(
-                  child: CircularProgressIndicator(),
-                )
-              ],
-            ),*/
-            Expanded(child: Container(
-              //height: screenHeight * 0.6,
-              width: screenWidth,
-              color: Colors.red,
-            ))
-          ],
-        ),
-      ),
-    );*/
-    return SliverFillRemaining(
-      hasScrollBody: false,
-      child: Container(
-        height: screenHeight * 0.625,
         width: screenWidth,
         child: Column(
           children: [
@@ -192,15 +191,14 @@ class _WQIDetailsPageState extends State<WQIDetailsPage> {
                 color: Colors.black.withOpacity(0.8),
               ),
             ),
-            Expanded( //Expand vertical
-              child: Stack(
-                alignment: Alignment.center,
+            Stack(
+                alignment: Alignment.centerLeft,
                 children: [
                   CarouselSlider.builder(
                     options: CarouselOptions(
-                      height: double.infinity,
+                      height: 450,
                       enableInfiniteScroll: false,
-                      enlargeCenterPage: true,
+                      viewportFraction: 1,
                       initialPage: 0,
                       onPageChanged: (index, reason) {
                         setState(() {
@@ -212,90 +210,34 @@ class _WQIDetailsPageState extends State<WQIDetailsPage> {
                     itemCount: 2,
                     itemBuilder: (BuildContext context, itemIndex, int pageViewIndex) {
                       if (itemIndex == 0) {
-                        return Column(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.symmetric(vertical: 5.0),
-                              child: AppLargeText(
-                                text: "Spatial Analysis", 
-                                color: Colors.black, 
-                                size: 22,
-                                decoration: TextDecoration.underline,
-                              ),
-                            ),
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Container(
-                                  margin: const EdgeInsets.symmetric(vertical: 14.0),
-                                  height: 300,
-                                  width: 300,
-                                  child: FlutterMap(
-                                    options: MapOptions(
-                                      allowPanningOnScrollingParent: false,
-                                      onPositionChanged: (mapPostion, moved) {null;},
-                                      center: LatLng(5.28181934 - 0.00052, 100.19457757 - 0.00000), 
-                                      zoom: 18.0,
-                                      plugins: [
-                                        
-                                      ],
-                                    ),
-                                    nonRotatedLayers: [
-                                      TileLayerOptions(
-                                        urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                                        subdomains: ['a', 'b', 'c'],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                /*FutureBuilder<Uint8List>(
-                                  future: bytes,
-                                  builder: (BuildContext context, AsyncSnapshot snapshot) {
-                                    if (!snapshot.hasData) {
-                                      return const Center(
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    }
-                                    Uint8List test = snapshot.data;
-                                    return Container(
-                                      //width: 240,
-                                      height: 240,
-                                      margin: const EdgeInsets.symmetric(vertical: 7.0, horizontal: 18.0),
-                                      /*decoration: BoxDecoration(
-                                        image: DecorationImage(
-                                          image: AssetImage('images/filename_test.png'),
-                                          fit: BoxFit.cover,
-                                        ),
-                                      ),*/
-                                      decoration: BoxDecoration(
-                                        color: Colors.transparent,
-                                        image: DecorationImage(
-                                          image: MemoryImage(test),
-                                          fit: BoxFit.cover
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                )*/
-                              ],
-                            ),
-                          ],
-                        );
+                        return buildInterpolationMap();
                       }
                       else {
-                        return Column(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.symmetric(vertical: 5.0),
-                              child: AppLargeText(
-                                text: "Chart Data", 
-                                color: Colors.black, 
-                                size: 22,
-                                decoration: TextDecoration.underline,
+                        return Container(
+                          width: 400,
+                          child: Column(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.only(top: 5.0, bottom: 5.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                                      child: AppLargeText(
+                                        text: "Chart Data", 
+                                        color: Colors.black, 
+                                        size: 22, 
+                                        decoration: TextDecoration.underline,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                    _getLineCharts(widget.WQIList, widget.WQIList.length)
+                                  ],
+                                ),
                               ),
-                            ),
-                            Text("test")
-                          ],
+                            ],
+                          ),
                         );
                       }
                     },
@@ -303,48 +245,160 @@ class _WQIDetailsPageState extends State<WQIDetailsPage> {
                   Row( //Left Right button row
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(width: 30, height: 50, color: Colors.white,
+                      activeIndex == 1 ? Container(width: 30, height: 50, color: Colors.white,
                         child: IconButton(
                           icon: const Icon(Icons.arrow_back_ios),
                           iconSize: 16.0,
                           padding: const EdgeInsets.only(left: 20.0),
                           onPressed: previous,
                         ),
-                      ),
+                      ): Container(),
                       Expanded(child: Container()),
-                      Container(width: 30, height: 50, color: Colors.white,
+                      activeIndex == 0? Container(width: 30, height: 50, color: Colors.white,
                         child: IconButton(
                           icon: const Icon(Icons.arrow_forward_ios),
                           iconSize: 16.0,
                           padding: const EdgeInsets.only(right: 20.0),
                           onPressed: next,
                         ),
-                      ),
+                      ): Container(),
                     ],
                   ),
                 ],
               ),
-            ),
           ],
         ),
       ),
     );
   }
 
-  SliverToBoxAdapter _buildChart() {
-    return SliverToBoxAdapter(
-      child: Container(
-        padding: const EdgeInsets.only(top: 5.0, bottom: 5.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 30.0),
-              child: AppLargeText(text: "Chart Data", color: Colors.black, size: 22,),
+  Container buildInterpolationMap() {
+    return Container(
+      width: 400,
+      child: Column(
+        children: [
+          FutureBuilder<Map<String, dynamic>>(
+            future: interpolationData,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                latitudeCenter = (snapshot.data!['latitude_start'] + snapshot.data!['latitude_end']) / 2;
+                longitudeCenter = (snapshot.data!['longitude_start'] + snapshot.data!['longitude_end']) / 2;
+                Uint8List bytesTest = const Base64Codec().decode(snapshot.data!['interpolation_image']);
+
+                latitudeCenter = latitudeCenter;
+
+                _markers.clear();
+                _markers.add(
+                  DragMarker(
+                    point: LatLng(latitudeCenter, longitudeCenter),
+                    width: 80.0,
+                    height: 80.0,
+                    offset: const Offset(0.0, -8.0),
+                    builder: (ctx) => const Icon(
+                      Icons.sailing, 
+                      size: 20, 
+                      color: Colors.blue,
+                    ),
+                    draggable: false, //The sailboat current location is not editable
+                    onDragUpdate: (details, point) {
+                      /*setState(() {
+                        dragUpdatePosition = point;
+                      });*/
+                    }, //The Lat and Long when drags
+                    updateMapNearEdge: false,
+                  ),
+                );
+
+                return Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      height: 300,
+                      width: 300,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black),
+                      ),
+                      child: FlutterMap(
+                        //mapController: _mapController,
+                        options: MapOptions(
+                          allowPanningOnScrollingParent: false,
+                          onPositionChanged: (mapPostion, moved) {null;},
+                          center: LatLng(latitudeCenter, longitudeCenter), 
+                          zoom: 18.0,
+                          plugins: [
+                            DragMarkerPlugin()
+                          ],
+                          /*onMapCreated: (c) {
+                            _mapController = c;
+                          },*/
+                        ),
+                        nonRotatedLayers: [
+                          TileLayerOptions(
+                            urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                            subdomains: ['a', 'b', 'c'],
+                          ),
+                          DragMarkerPluginOptions(
+                            markers: _markers, 
+                          ),
+                        ],
+                      ),
+                    ),
+                    widget.boatID != ""? AspectRatio(
+                      aspectRatio: 1,
+                      child: Container(
+                        width: 240,
+                        margin: const EdgeInsets.only(right: 10, bottom: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          image: DecorationImage(
+                            image: MemoryImage(bytesTest),
+                            fit: BoxFit.cover,
+                            alignment: FractionalOffset.center
+                          ),
+                        ),
+                      ),
+                    ): Container(),
+                    Positioned(
+                      top: 0,
+                      child: Container(
+                        child: AppLargeText(
+                          text: "Spatial Analysis", 
+                          color: Colors.black, 
+                          size: 22,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      child: Container(
+                        height: 20,
+                        width: 300,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black),
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: _getListColor("WQI"),
+                          )          
+                        ),
+                      ),
+                    )
+                  ],
+                );
+              } 
+              return CircularProgressIndicator();
+            },
+          ),
+          Container(
+            width: 315,
+            padding: EdgeInsets.only(top: 2),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: _getColorBarLabel("WQI"),
             ),
-            //_getLineCharts(widget.wqiList, _currentSliderValue.toInt())
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -354,65 +408,62 @@ class _WQIDetailsPageState extends State<WQIDetailsPage> {
   void previous() => sliderController.previousPage();
 }
 
-/*WaterLineChart2 _getLineCharts(List<Data> dataList, int size) {
-    List<double> testWater = [12.17, 11.15, 10.02, 11.21, 13.83, 14.16, 14.30];
-    List<double> waterDataList = [];
-    List<String> waterDataDate = [];
-    String sensorUnit = '';
+WaterLineChart2 _getLineCharts(List<WaterQualityData> WQIList, int size) {
+    List<double> WQIDataList = [];
+    List<String> dataTime = [];
     double reservedSize = 30.0;
 
-    switch (title) {
-      case 'Temperature':
-        sensorUnit = '(°C)';
-        for (var i = 0; i < size; i++) { //7 is the number of days
-          waterDataList.add(dataList[i].temp);
-          waterDataDate.add(dataList[i].time);
-        }
-        break;
-      case 'Turbidity':
-        sensorUnit = '(NTU)';
-        for (var i = 0; i < size; i++) { //7 is the number of days
-          waterDataList.add(dataList[i].turbidity);
-          waterDataDate.add(dataList[i].time);
-        }
-        reservedSize = 45.0;
-        break;
-      case 'pH':
-        sensorUnit = '';
-        for (var i = 0; i < size; i++) { //7 is the number of days
-          waterDataList.add(dataList[i].pH);
-          waterDataDate.add(dataList[i].time);
-        }
-        reservedSize = 20.0;
-        break;
-      case 'Electrical Conductivity':
-        sensorUnit = '(mS/cm)';
-        for (var i = 0; i < size; i++) { //7 is the number of days
-          waterDataList.add(dataList[i].eC);
-          waterDataDate.add(dataList[i].time);
-        }
-        reservedSize = 34.0;
-        break;
-      case 'Dissolved Oxygen':
-        sensorUnit = '(mg/L)';
-        for (var i = 0; i < size; i++) { //7 is the number of days
-          waterDataList.add(dataList[i].dO);
-          waterDataDate.add(dataList[i].time);
-        }
-        reservedSize = 30.0;
-        break;
-      default:
-        sensorUnit = '';
+    for (var i = 0; i < size; i++) { //7 is the number of days
+      WQIDataList.add(WQIList[i].WQIval.toDouble());
+      dataTime.add(WQIList[i].dataTime);
     }
+
     return WaterLineChart2(
-      dataList: waterDataList,
-      timeList: waterDataDate, 
-      title: title + sensorUnit, 
+      dataList: WQIDataList,
+      timeList: dataTime, 
+      title: "", 
       reservedSize: reservedSize, 
       barSize: size
     );
   }
-*/
+
+List<Widget> _getColorBarLabel(String parameter) {
+  List<Widget> listLabel = [];
+  switch (parameter) {
+    case "WQI":
+      listLabel = [Text("0"),Text("45"),Text("65"),Text("80"),Text("95"),Text("100")];
+      break;
+    case "pH":
+      listLabel = [Text("0.0"),Text("5.0"),Text("5.5"),Text("9.5"),Text("10.0")];
+      break;
+    case "turbidity":
+      listLabel = [Text("-200"),Text("0"),Text("100"),Text("1900"),Text("2000")];
+      break;
+    case "DO":
+      listLabel = [Text("-20.0"),Text("0.0"),Text("10.0"),Text("45.0"),Text("55.0")];
+      break;
+    case "temp":
+      listLabel = [Text("10.0"),Text("20.0"),Text("25.0"),Text("30.0"),Text("35.0")];
+      break;
+    default:
+      listLabel = [];
+  }
+
+  return listLabel;
+}
+
+List<Color> _getListColor(String parameter) {
+  List<Color> colorList = [];
+
+  switch (parameter) {
+    case "WQI":
+      colorList = [Colors.black, Colors.red, Colors.orange, Colors.yellow, Colors.blue, Colors.green];
+      break;
+  }
+
+  return colorList;
+}
+
 String _getWQIClass(int wqiOverall) {
   String classNumber = "";
   String classStatus = "";

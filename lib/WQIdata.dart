@@ -55,6 +55,7 @@ class WaterQualityData{
   int WQItemp;
   int WQIturb;
   int WQIval;
+  String dataTime;
 
   WaterQualityData({
     required this.WQIph,
@@ -62,6 +63,7 @@ class WaterQualityData{
     required this.WQItemp,
     required this.WQIturb,
     required this.WQIval,
+    required this.dataTime,
   });
 
   factory WaterQualityData.fromJson(Map<String, dynamic> parsedJson) {
@@ -70,7 +72,8 @@ class WaterQualityData{
       WQIph: parsedJson['WQI pH'],
       WQItemp: parsedJson['WQI temp'],
       WQIturb: parsedJson['WQI turb'],
-      WQIval: parsedJson['Overall WQI']
+      WQIval: parsedJson['Overall WQI'],
+      dataTime: parsedJson['time']
     );
   }
 }

@@ -28,13 +28,13 @@ class GenerateFormField extends StatelessWidget {
       },
       obscureText: showObsure!,
       decoration: InputDecoration(
-        helperText: label == "PASSWORD"? "6 Characters with Upper, Lower Cases and Symbols": "",
+        helperText: label.contains("PASSWORD")? "6 Characters with Upper, Lower Cases and Symbols": "",
         helperStyle: const TextStyle(
           fontSize: 10.0
         ),
         isDense: true,
         labelText: label,
-        suffixIcon: label == "PASSWORD" ? IconButton(
+        suffixIcon: label.contains("PASSWORD") ? IconButton(
           padding: const EdgeInsets.only(top: 26),
           color: AppColors.mainColor,
           onPressed: onPressedIcon, 

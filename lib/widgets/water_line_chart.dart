@@ -55,7 +55,7 @@ class _WaterLineChart2State extends State<WaterLineChart2> {
                 Container(
                   padding: const EdgeInsets.only(bottom:  15.0, top: 5.0),
                   child: const Text(
-                    "12 June 2022",
+                    "", // 12 June 2022
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 14,

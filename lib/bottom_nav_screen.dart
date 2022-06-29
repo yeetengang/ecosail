@@ -21,6 +21,7 @@ import 'package:ecosail/widgets/responsive.dart';
 import 'package:ecosail/widgets/responsive_btn.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sliding_sheet/sliding_sheet.dart';
 import 'package:http/http.dart' as http;
 
@@ -41,6 +42,7 @@ Future<Gateway> getSensorData(String userID, String boatID) async{
     );
     //print(response.body);
     if (response.statusCode == 200) {
+      print(response.body);
       return Gateway.fromJson(jsonDecode(response.body));
     } else {
       throw Exception('Failed to load gateway');
@@ -52,9 +54,11 @@ Future<Gateway> getSensorData(String userID, String boatID) async{
   throw Exception("Weird Stuff");
 }
 
-// POST method
-Future<WQIData> getWQIData(String userID, String boatID, int dissolveOxy) async {
+Future<WQIData> getWQIData(String userID, String boatID) async {
   
+  print(userID);
+  print(boatID);
+
   try {
     final response = await http.post(
       Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage2/ecosail_getsensor'),
@@ -62,20 +66,16 @@ Future<WQIData> getWQIData(String userID, String boatID, int dissolveOxy) async 
         'Accept': 'application/json',
       },
       body: jsonEncode(<String, String>{
-        'userID': userID.toString(),
+        'userID': userID,
         'boatID': boatID,
-        'dissolveOxy': dissolveOxy.toString(),
-        'pH': '6.65',
-        'temp': '30',
-        'turb': '5'
       }),
     );
-    print(response.body);
+    //print(response.body);
+    // The request will timeout the first time if long time no use, can recall again if this happend
     if (response.statusCode == 200) {
-      
       return WQIData.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Failed to load data');
+      return getWQIData(userID, boatID);
     }
   } on HttpException catch(e) {
     print('error cought: $e');
@@ -108,7 +108,7 @@ Future<Uint8List> getInterpolationImage(String userID, String boatID, int size) 
   }
 }
 
-Future<Map<String, dynamic>> getInterpolationImage2(String userID, String boatID, int size) async {
+/*Future<Map<String, dynamic>> getInterpolationImage2(String userID, String boatID, int size, String dataType, String tripID) async {
   String status = "Get Interpolation"; //Cannot directly process and retrieve otherwise will cause error
   Map<String, dynamic> interpolationData;
 
@@ -121,7 +121,9 @@ Future<Map<String, dynamic>> getInterpolationImage2(String userID, String boatID
       'userID': userID,
       'status': status,
       'boatID': boatID,
+      'tripID': tripID,
       'size': size.toString(),
+      'type': dataType
     }),
   );
   
@@ -136,9 +138,38 @@ Future<Map<String, dynamic>> getInterpolationImage2(String userID, String boatID
   if (response.statusCode == 200) {
     return interpolationData;
   } else {
-    return getInterpolationImage2(userID, boatID, 20);
+    return getInterpolationImage2(userID, boatID, 20, dataType, tripID);
   }
-}
+}*/
+
+Future<bool> recreateInterpolation(String userID, String boatID, String tripID, String dataType) async {
+  String status = "Interpolation";
+
+  final response = await http.post(
+    Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
+    headers: <String, String>{
+      'Accept': 'application/json',
+    },
+    body: jsonEncode(<String, String>{
+      'userID': userID,
+      'status': status,
+      'boatID': boatID,
+      'tripID': tripID,
+      'type': dataType
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    try {
+      print(jsonDecode(response.body)['message'] + ' for ' + dataType);
+    } catch (e){
+      print("No response from server");
+    }
+    return false;
+  } else {
+    return recreateInterpolation(userID, boatID, tripID, dataType);
+  }
+} 
 
 class BottomNavScreen extends StatefulWidget {
   //final List<Data> dataList;
@@ -156,18 +187,25 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
   int currentIndex = 0;
   String _selectedSailboat = '';
   String _selectedSailboatName = '';
+  String _selectedTripID = '';
   int dissolveOxy = 0;
+  late Future<bool> refreshStateWQI, refreshStatepH, refreshStateTurb, refreshStateTemp, refreshStateDO;
   late Future<String> _future;
   late Timer t = Timer(const Duration(milliseconds: 10), () {});
+  late Timer t2 = Timer(const Duration(milliseconds: 10), () {});
+  late Timer t3 = Timer(const Duration(milliseconds: 10), () {});
+  late Timer t4 = Timer(const Duration(milliseconds: 10), () {});
   late Future<Gateway> futureGateway;
   late List<Data> datalist;
   late List<Boat> boatList;
-  //late Future<WQIData> futureWQIData;
-  late Future<Uint8List> bytes;
+  late Future<WQIData> futureWQIData;
+  //late Future<Uint8List> bytes;
   late Future<Sailboat> futureSailboat;
   late Future<Map<String, dynamic>> interpolationData;
   final GlobalKey<ScaffoldState> _key = GlobalKey();
-
+  DateTime now = DateTime.now();
+  String formattedDate = "";
+  
   //A function for on click the tab
   void onTap(int index) {
     setState(() {
@@ -180,13 +218,58 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
     super.initState();
     //bytes = getInterpolationImage(widget.userID, _selectedSailboat, 20);
 
-    interpolationData = getInterpolationImage2(widget.userID, _selectedSailboat, 20);
-    //futureWQIData = getWQIData('123', '123', 80);
+    // Get WQI Data
+    futureWQIData = getWQIData(widget.userID, _selectedSailboat);
+    formattedDate = DateFormat('EEE d MMM kk:mm a').format(now);
+    Timer.periodic(const Duration(seconds: 2), (t4) {
+      if (mounted) {
+        if (_selectedSailboat != "") {
+          t4.cancel();
+          futureWQIData = getWQIData(widget.userID, _selectedSailboat);
+          formattedDate = DateFormat('EEE d MMM kk:mm a').format(now);
+          Timer.periodic(const Duration(minutes: 2), (t3) {
+            if (mounted) {
+              setState(() {
+                now = DateTime.now().toLocal();
+                formattedDate = DateFormat('EEE d MMM kk:mm a').format(now);
+                futureWQIData = getWQIData(widget.userID, _selectedSailboat);
+              });
+            }
+          });
+        }
+      }
+    });
     
+
+    // Get Interpolation Maps
+    /*interpolationData = getInterpolationImage2(widget.userID, _selectedSailboat, 20, 'temp', '');
     bytes = interpolationData.then((value) {
       return const Base64Codec().decode(value['interpolation_image']);
+    });*/
+
+    //Refresh Interpolation Image
+    refreshStateWQI = recreateInterpolation(widget.userID, _selectedSailboat, '', 'WQI');
+    refreshStatepH = recreateInterpolation(widget.userID, _selectedSailboat, '', 'pH');
+    refreshStateTemp = recreateInterpolation(widget.userID, _selectedSailboat, '', 'temp');
+    refreshStateTurb = recreateInterpolation(widget.userID, _selectedSailboat, '', 'turbidity');
+    refreshStateTurb = recreateInterpolation(widget.userID, _selectedSailboat, '', 'EC');
+    refreshStatepH = recreateInterpolation(widget.userID, _selectedSailboat, '', 'DO');
+
+    Timer.periodic(const Duration(minutes: 2), (t2) {
+      if (mounted) {
+        print("refreshing");
+        setState(() {
+          refreshStateWQI = recreateInterpolation(widget.userID, _selectedSailboat, '', 'WQI');
+          refreshStatepH = recreateInterpolation(widget.userID, _selectedSailboat, '', 'pH');
+          refreshStateTemp = recreateInterpolation(widget.userID, _selectedSailboat, '', 'temp');
+          refreshStateTurb = recreateInterpolation(widget.userID, _selectedSailboat, '', 'turbidity');
+          refreshStateTurb = recreateInterpolation(widget.userID, _selectedSailboat, '', 'EC');
+          refreshStatepH = recreateInterpolation(widget.userID, _selectedSailboat, '', 'DO');
+        });
+      }
     });
 
+    // Get Sensor Data
     futureGateway = getSensorData(widget.userID, _selectedSailboat);
     Timer.periodic(const Duration(milliseconds: 5000), (t) {
       if (mounted) {
@@ -195,7 +278,8 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
         });
       }
     });
-
+    
+    // Setup Notification
     NotificationApi.init();
     listenNotifications();
   }
@@ -203,6 +287,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
   @override
   void dispose() {
     t.cancel();
+    t2.cancel();
     super.dispose();
   }
 
@@ -311,7 +396,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
                           _selectedSailboat,
                           _selectedSailboatName, 
                           widget.userID, 
-                          interpolationData,
+                          //interpolationData,
                           IconButton(
                             color: AppColors.btnColor2,
                             iconSize: 36,
@@ -323,6 +408,8 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
                               print("test");
                             }, 
                           ),
+                          formattedDate,
+                          futureWQIData
                         ),
                       ),
                     ],
@@ -332,23 +419,25 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
                         _selectedSailboat,
                         _selectedSailboatName, 
                         widget.userID,  
-                        interpolationData,
+                        //interpolationData,
                         IconButton(
-                            color: AppColors.btnColor2,
-                            iconSize: 36,
-                            splashColor: Colors.transparent,
-                            icon: const Icon(
-                              Icons.change_circle
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                //bytes = getInterpolationImage(widget.userID, _selectedSailboat, 20);
-                                bytes = interpolationData.then((value) {
-                                  return const Base64Codec().decode(value['interpolation_image']);
-                                });
-                              });
-                            }, 
+                          color: AppColors.btnColor2,
+                          iconSize: 36,
+                          splashColor: Colors.transparent,
+                          icon: const Icon(
+                            Icons.change_circle
                           ),
+                          onPressed: () {
+                            /*setState(() {
+                              //bytes = getInterpolationImage(widget.userID, _selectedSailboat, 20);
+                              bytes = interpolationData.then((value) {
+                                return const Base64Codec().decode(value['interpolation_image']);
+                              });
+                            });*/
+                          }, 
+                        ),
+                        formattedDate,
+                        futureWQIData
                   ),
                   bottomNavigationBar: !kIsWeb? Container( 
                     //Show bottom Navigation Bar only if not a web version
@@ -685,7 +774,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
     DateTime deviceDateTime = DateTime.now();
     //print('data: ' + sensorLatestDateTime.toString());
     //print('now: ' + deviceDateTime.toString());
-    print('differences: ' + deviceDateTime.difference(sensorLatestDateTime).inSeconds.toString());
+    //print('differences: ' + deviceDateTime.difference(sensorLatestDateTime).inSeconds.toString());
     if (deviceDateTime.difference(sensorLatestDateTime).inSeconds >= 15) { //Usually 15 seconds, but the emulator got time delay
       return false;
     }

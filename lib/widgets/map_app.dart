@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:ecosail/others/colors.dart';
 import 'package:ecosail/others/dragmarker.dart';
+import 'package:ecosail/others/functions.dart';
 import 'package:ecosail/previous_location.dart';
 import 'package:ecosail/widgets/responsive_btn.dart';
 import 'package:flutter/material.dart';

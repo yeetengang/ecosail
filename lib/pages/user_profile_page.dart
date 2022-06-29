@@ -1,3 +1,4 @@
+import 'package:amazon_cognito_identity_dart_2/cognito.dart';
 import 'package:ecosail/gateway.dart';
 import 'package:ecosail/others/colors.dart';
 import 'package:ecosail/pages/change_password_page.dart';
@@ -18,7 +19,7 @@ class UserProfile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Size screenSize = MediaQuery.of(context).size;
-    
+
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       appBar: PreferredSize(
@@ -46,31 +47,10 @@ class UserProfile extends StatelessWidget {
                 constraints: const BoxConstraints(minWidth: 200, maxWidth: 300),
                 padding: const EdgeInsets.symmetric(vertical: 10.0),
                 child: ResponsiveButton(
-                  onTap: () {}, 
-                  widget: Container(
-                    width: screenSize.width * 0.70,
-                    padding: const EdgeInsets.all(12.0),
-                    child: const Text(
-                      "Change Email", 
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 18.0,
-                        letterSpacing: 0.0
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Container(
-                constraints: const BoxConstraints(minWidth: 200, maxWidth: 300),
-                padding: const EdgeInsets.symmetric(vertical: 10.0),
-                child: ResponsiveButton(
                   onTap: () {
                     Navigator.push(
                       context, 
-                      PageRouteBuilder(pageBuilder: (_, __, ___) => const ChangePasswordPage()), //use MaterialPageRoute for animation
+                      PageRouteBuilder(pageBuilder: (_, __, ___) => ChangePasswordPage(userEmail: userEmail,)), //use MaterialPageRoute for animation
                     );
                   }, 
                   widget: Container(

@@ -36,101 +36,105 @@ class _ChartsPageState extends State<ChartsPage> {
         slivers: <Widget>[
           _buildHeader(),
           _buildBody(screenSize.height, screenSize.width),
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: Container(
-              height: screenSize.height * 0.625,
-              width: screenSize.width,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(30.0), 
-                  topRight: Radius.circular(30.0)
-                ),
+          _buildContent(screenSize),
+        ],
+      ),
+    );
+  }
+
+  SliverFillRemaining _buildContent(Size screenSize) {
+    return SliverFillRemaining(
+      hasScrollBody: false,
+      child: Container(
+        height: screenSize.height * 0.625,
+        width: screenSize.width,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(30.0), 
+            topRight: Radius.circular(30.0)
+          ),
+        ),
+        child: Column(
+          children: [
+            Container( //Chart Indicator & Chart Selection button
+              height: 60.0,
+              padding: const EdgeInsets.only(left: 20.0, top: 10.0, right: 20.0),
+              child: Row(
+                children: <Widget>[
+                  _buildChartIndicator(),
+                  Expanded(child: Container()),
+                  _buildChartSelectBtn(Icons.show_chart, 0),
+                  const SizedBox(width: 10.0,),
+                  _buildChartSelectBtn(Icons.bar_chart, 1),
+                ],
               ),
-              child: Column(
+            ),
+            Expanded( //Expand vertical
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  Container( //Chart Indicator & Chart Selection button
-                    height: 60.0,
-                    padding: const EdgeInsets.only(left: 20.0, top: 10.0, right: 20.0),
-                    child: Row(
-                      children: <Widget>[
-                        _buildChartIndicator(),
-                        Expanded(child: Container()),
-                        _buildChartSelectBtn(Icons.show_chart, 0),
-                        const SizedBox(width: 10.0,),
-                        _buildChartSelectBtn(Icons.bar_chart, 1),
-                      ],
+                  _selected[1] ? 
+                  CarouselSlider.builder(
+                    options: CarouselOptions(
+                      height: double.infinity,
+                      enlargeCenterPage: true,
+                      viewportFraction: 1,
+                      initialPage: 0,
+                      onPageChanged: (index, reason) {
+                        setState(() {
+                          activeIndex = index;
+                        });
+                      },
                     ),
+                    carouselController: sliderController,
+                    itemCount: parameters.length,
+                    itemBuilder: (BuildContext context, itemIndex, int pageViewIndex) =>
+                      widget.dataList[0].date == ""? const Text("No Data"): _getBarCharts(parameters[itemIndex], widget.dataList, _currentSliderValue.toInt()),
+                  ) : CarouselSlider.builder(
+                    options: CarouselOptions(
+                      height: double.infinity,
+                      enlargeCenterPage: true,
+                      viewportFraction: 1,
+                      initialPage: 0,
+                      onPageChanged: (index, reason) {
+                        setState(() {
+                          activeIndex = index;
+                        });
+                      },
+                    ),
+                    carouselController: sliderController,
+                    itemCount: parameters.length,
+                    itemBuilder: (BuildContext context, itemIndex, int pageViewIndex) =>
+                      widget.dataList[0].date == ""? const Text("No Data"): _getLineCharts(parameters[itemIndex], widget.dataList, _currentSliderValue.toInt()),
                   ),
-                  Expanded( //Expand vertical
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        _selected[1] ? 
-                        CarouselSlider.builder(
-                          options: CarouselOptions(
-                            height: double.infinity,
-                            enlargeCenterPage: true,
-                            viewportFraction: 1,
-                            initialPage: 0,
-                            onPageChanged: (index, reason) {
-                              setState(() {
-                                activeIndex = index;
-                              });
-                            },
-                          ),
-                          carouselController: sliderController,
-                          itemCount: parameters.length,
-                          itemBuilder: (BuildContext context, itemIndex, int pageViewIndex) =>
-                            widget.dataList[0].date == ""? const Text("No Data"): _getBarCharts(parameters[itemIndex], widget.dataList, _currentSliderValue.toInt()),
-                        ) : CarouselSlider.builder(
-                          options: CarouselOptions(
-                            height: double.infinity,
-                            enlargeCenterPage: true,
-                            viewportFraction: 1,
-                            initialPage: 0,
-                            onPageChanged: (index, reason) {
-                              setState(() {
-                                activeIndex = index;
-                              });
-                            },
-                          ),
-                          carouselController: sliderController,
-                          itemCount: parameters.length,
-                          itemBuilder: (BuildContext context, itemIndex, int pageViewIndex) =>
-                            widget.dataList[0].date == ""? const Text("No Data"): _getLineCharts(parameters[itemIndex], widget.dataList, _currentSliderValue.toInt()),
+                  Row( //Left Right button row
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(width: 30, height: 50, color: Colors.white,
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back_ios),
+                          iconSize: 16.0,
+                          padding: const EdgeInsets.only(left: 20.0),
+                          onPressed: previous,
                         ),
-                      Row( //Left Right button row
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(width: 30, height: 50, color: Colors.white,
-                              child: IconButton(
-                                icon: const Icon(Icons.arrow_back_ios),
-                                iconSize: 16.0,
-                                padding: const EdgeInsets.only(left: 20.0),
-                                onPressed: previous,
-                              ),
-                            ),
-                            Expanded(child: Container()),
-                            Container(width: 30, height: 50, color: Colors.white,
-                              child: IconButton(
-                                icon: const Icon(Icons.arrow_forward_ios),
-                                iconSize: 16.0,
-                                padding: const EdgeInsets.only(right: 20.0),
-                                onPressed: next,
-                              ),
-                            ),
-                          ],
+                      ),
+                      Expanded(child: Container()),
+                      Container(width: 30, height: 50, color: Colors.white,
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_forward_ios),
+                          iconSize: 16.0,
+                          padding: const EdgeInsets.only(right: 20.0),
+                          onPressed: next,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-          )
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -151,6 +155,7 @@ class _ChartsPageState extends State<ChartsPage> {
   }
 
   SliverToBoxAdapter _buildBody(double screenHeight, double screenWidth) {
+    // To build the indicator
     return SliverToBoxAdapter(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -181,7 +186,6 @@ class _ChartsPageState extends State<ChartsPage> {
               },
             ),
           ), 
-          
         ],
       ),
     );

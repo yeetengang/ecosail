@@ -10,53 +10,30 @@ import 'package:ecosail/pages/wqi_details_page.dart';
 import 'package:ecosail/widgets/app_large_text.dart';
 import 'package:ecosail/widgets/reponsive_text.dart';
 import 'package:ecosail/widgets/responsive.dart';
+import 'package:ecosail/widgets/tabIndicator.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'package:http/http.dart' as http;
 
-Future<WQIData> getWQIData(String userID, String boatID, int dissolveOxy) async {
-  
-  try {
-    final response = await http.post(
-      Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage2/ecosail_getsensor'),
-      headers: <String, String>{
-        'Accept': 'application/json',
-      },
-      body: jsonEncode(<String, String>{
-        'userID': "de65ea37490b4d2d8a4c1cd6ab52b266",
-        'boatID': "b8:27:eb:9b:91:d2",
-        'dissolveOxy': dissolveOxy.toString(),
-        'pH': '6.65',
-        'temp': '30',
-        'turb': '5'
-      }),
-    );
-    print(response.body);
-    // The request will timeout the first time if long time no use, can recall again if this happend
-    if (response.statusCode == 200) {
-      return WQIData.fromJson(jsonDecode(response.body));
-    } else {
-      return getWQIData('123', '123', 80);
-    }
-  } on HttpException catch(e) {
-    print('error cought: $e');
-  }
-
-  throw Exception("Error getting WQI data");
-}
 
 class DashboardPage extends StatefulWidget {
   final List<Data> dataList;
   final String selectedboatID;
   final String selectedboatName;
+  final String userID;
+  final Future<WQIData> futureWQIData;
+  final String formattedDate;
   
   const DashboardPage({
     Key? key,
     required this.dataList,
     required this.selectedboatID,
-    required this.selectedboatName
+    required this.selectedboatName,
+    required this.userID,
+    required this.futureWQIData,
+    required this.formattedDate
   });
 
   @override
@@ -69,27 +46,16 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
   double oriPh = 0, oriTemp = 0, oriTurb = 0, oriDO = 0;
   CarouselController sliderController = CarouselController();
   int activeIndex = 0;
-  late Future<WQIData> futureWQIData;
+  
+  late List<WaterQualityData> WQIList;
   late Timer t = Timer(const Duration(milliseconds: 10), () {});
-  DateTime now = DateTime.now();
-  String formattedDate = "";
+  
   
   @override
   void initState() {
     super.initState();
-    
-    // For WQI only retrieve every 5 minutes
-    futureWQIData = getWQIData('123', '123', 80);
-    formattedDate = DateFormat('EEE d MMM kk:mm a').format(now);
-    Timer.periodic(const Duration(minutes: 5), (t) {
-      if (mounted) {
-        setState(() {
-          now = DateTime.now().toLocal();
-          formattedDate = DateFormat('EEE d MMM kk:mm a').format(now);
-          futureWQIData = getWQIData('123', '123', 80);
-        });
-      }
-    });
+
+    WQIList = [];
   }
 
   @override
@@ -97,7 +63,7 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
     final Size screenSize = MediaQuery.of(context).size;
     TabController _tabController = TabController(length: 3, vsync: this, initialIndex: activeIndex);
 
-    futureWQIData.then((value) {
+    widget.futureWQIData.then((value) {
       setState(() {
         dissolveOxy = value.averDO;
         pH = value.averpH;
@@ -108,6 +74,7 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
         oriPh = value.oripH;
         oriTemp = value.oriTemp;
         oriTurb = value.oriTurb;
+        WQIList = value.data;
       });
     });
 
@@ -138,19 +105,16 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
   }
 
   SliverToBoxAdapter _buildDashboardPages(double screenHeight, double screenWidth, TabController _tabController) {
-    //print(screenHeight);
-    //print(screenWidth);
-
     return SliverToBoxAdapter(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Tab Bar
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Responsive.isMobile(context) || Responsive.isTablet(context) || (screenHeight < 400.0 && Responsive.isTablet(context))? TabBar( 
+              child: !((kIsWeb || Responsive.isTablet(context)) && screenHeight >= 400.0)? TabBar( 
                 //Show tab bar when is Mobile / is Tablet / is Horizontal Mobile version
                 labelPadding: const EdgeInsets.only(left: 20, right: 20,),
                 controller: _tabController,
@@ -220,184 +184,7 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
                     ),
                   ],
                 ),
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 5.0),
-                      width: double.infinity,
-                      /*decoration: BoxDecoration(
-                        color: AppColors.btnColor2,
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),*/
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: 50,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text(
-                                      "Aver. WQI Prediction", 
-                                      style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w600, color: AppColors.bigTextColor),
-                                    ),
-                                    ResponsiveText(
-                                      text: 'See the details',
-                                      colors: AppColors.sheetFocusColor,
-                                      size: 14.0,
-                                      onTap: () { 
-                                        Navigator.push(
-                                          context, 
-                                          PageRouteBuilder(pageBuilder: (_, __, ___) => 
-                                            WQIDetailsPage(
-                                              boatID: widget.selectedboatID,
-                                              boatName: widget.selectedboatName,
-                                              latitude: 5.34938049,
-                                              longitude: 100.29799652,
-                                              overallWQI: wqiOverall,
-                                            )
-                                          ), //use MaterialPageRoute for animation
-                                        );
-                                      }
-                                    ),
-                                  ],
-                                ),
-                                Text(
-                                  "Last Update: " + formattedDate, 
-                                  style: TextStyle(
-                                    fontSize: 14.0, 
-                                    height: 2.0, 
-                                    color: Colors.white.withOpacity(0.9)
-                                  ), 
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            height: 170,
-                            margin: EdgeInsets.symmetric(vertical: 10.0),
-                            decoration: BoxDecoration(
-                              color: AppColors.btnColor2,
-                              borderRadius: BorderRadius.circular(10.0),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
-                                  spreadRadius: 1,
-                                  blurRadius: 1,
-                                  offset: const Offset(1, 1)
-                                ),
-                              ]
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Positioned(
-                      top: 50 + 20 + 5,
-                      child: Container(
-                        height: 200,
-                        width: 200,
-                        child: SfRadialGauge(
-                          enableLoadingAnimation: false,
-                          animationDuration: 2500,
-                          axes: <RadialAxis>[
-                            RadialAxis(
-                              radiusFactor: 1,
-                              majorTickStyle: MajorTickStyle(color: AppColors.mainColor),
-                              axisLabelStyle: GaugeTextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold
-                              ),
-                              startAngle: 180,
-                              endAngle: 0,
-                              minimum: 0, 
-                              maximum: 100, 
-                              pointers: <GaugePointer>[
-                                NeedlePointer(
-                                  value: wqiOverall.toDouble(), 
-                                  enableAnimation: true,
-                                  needleEndWidth: 5,
-                                  knobStyle: KnobStyle(
-                                    color: AppColors.mainColor,
-                                    knobRadius: 0.05,
-                                  ),
-                                  needleColor: AppColors.mainColor,
-                                )
-                              ], 
-                              ranges: <GaugeRange>[
-                                GaugeRange(startValue: 0, endValue: 45, color: Colors.red,),
-                                GaugeRange(startValue: 45, endValue: 65, color: Colors.orange,),
-                                GaugeRange(startValue: 65, endValue: 80, color: Colors.yellow,),
-                                GaugeRange(startValue: 80, endValue: 95, color: Colors.lightBlue,),
-                                GaugeRange(startValue: 95, endValue: 100, color: Colors.lightGreen,)
-                              ], 
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 50 + 100 + 10 + 20 + 5, // 50 for Title, 100 for half of gauge, 10 for extra space, 20 for padding
-                      child: Container(
-                        height: 50,
-                        child: RichText(
-                          textAlign: TextAlign.center,
-                          text: TextSpan(
-                            text: "WQI: ",
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 20.0
-                            ),
-                            children: <TextSpan> [
-                              TextSpan(
-                                text: wqiOverall.toString(),
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 20.0,
-                                  fontWeight: FontWeight.bold
-                                )
-                              ),
-                              _getWQIClass(wqiOverall),
-                            ]
-                          ),
-                        ),
-                      )
-                    ),
-                    Positioned(
-                      top: 100 + 145,
-                      left: 15,
-                      child: Container(
-                        width: screenWidth - 57, 
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _getWQICard("pH", pH, oriPh.toDouble()),
-                            _getWQICard("Temp", temp, oriTemp.toDouble()),
-                            _getWQICard("Turb", turb, oriTurb.toDouble()),
-                          ],
-                        )
-                      )
-                    ),
-                    Positioned(
-                      top: 100 + 145 + 100 + 10,
-                      left: 15,
-                      child: Container(
-                        width: screenWidth - 57, 
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _getWQICard("DO", dissolveOxy, oriDO.toDouble()),
-                            Flexible(child: Container(), flex: 2,)
-                          ],
-                        )
-                      )
-                    ),
-                  ],
-                ),
+                _buildWQIPage(screenWidth),
                 Column(
                   children: <Widget>[
                     _buildCurrentSailboatCard(screenHeight, widget.selectedboatID, widget.selectedboatName, context),
@@ -406,33 +193,8 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
                   ],
                 ),
               ],
-            ): Responsive.isTablet(context) && kIsWeb? Column( //When is a web version and is tablet size
-              children: <Widget>[
-                Flexible(
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(child: _buildSensorCards(screenWidth, 'Temperature', widget.dataList[0].temp)),
-                      Expanded(child: _buildSensorCards(screenWidth, 'Turbidity', widget.dataList[0].turbidity)),
-                    ],
-                  ),
-                ),
-                Flexible(
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(child: _buildSensorCards(screenWidth, 'pH', widget.dataList[0].pH)),
-                      Expanded(child: _buildSensorCards(screenWidth, 'Electrical\nConductivity', widget.dataList[0].eC)),
-                    ],
-                  ),
-                ),
-                Flexible(
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(child: _buildSensorCards(screenWidth, 'Dissolved\nOxygen', widget.dataList[0].dO)),
-                    ],
-                  ),
-                ),
-              ],
-            ): Container( //When is a web version
+            ): Responsive.isTablet(context) && kIsWeb? _buildTabletVersion(screenWidth)
+            : Container( //When is a web version
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
               child: Column(
                 children: [
@@ -479,11 +241,7 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
               ),
             ),
           ),
-          (kIsWeb || Responsive.isTablet(context)) && screenHeight >= 400.0? Container(
-            padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 5.0),
-            alignment: Alignment.topLeft,
-            child: const Text('Predicted WQI data',),
-          ): Container(),
+          (kIsWeb || Responsive.isTablet(context)) && screenHeight >= 400.0? _buildWQIPage(screenWidth): Container(),
           (kIsWeb || Responsive.isTablet(context)) && screenHeight >= 400.0? Container(
             padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 5.0),
             child: Column(
@@ -494,6 +252,213 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
               ],
             ),
           ): Container()
+        ],
+      ),
+    );
+  }
+
+  Column _buildTabletVersion(double screenWidth) {
+    return Column( //When is a web version and is tablet size
+      children: <Widget>[
+        Flexible(
+          child: Row(
+            children: <Widget>[
+              Expanded(child: _buildSensorCards(screenWidth, 'Temperature', widget.dataList[0].temp)),
+              Expanded(child: _buildSensorCards(screenWidth, 'Turbidity', widget.dataList[0].turbidity)),
+            ],
+          ),
+        ),
+        Flexible(
+          child: Row(
+            children: <Widget>[
+              Expanded(child: _buildSensorCards(screenWidth, 'pH', widget.dataList[0].pH)),
+              Expanded(child: _buildSensorCards(screenWidth, 'Electrical\nConductivity', widget.dataList[0].eC)),
+            ],
+          ),
+        ),
+        Flexible(
+          child: Row(
+            children: <Widget>[
+              Expanded(child: _buildSensorCards(screenWidth, 'Dissolved\nOxygen', widget.dataList[0].dO)),
+            ],
+          ),
+        ),
+      ]
+    );
+  }
+
+  Container _buildWQIPage(double screenWidth) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 5.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: double.infinity,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  height: 55,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "Aver. WQI Prediction", 
+                            style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w600, color: AppColors.bigTextColor),
+                          ),
+                          wqiOverall != 0 ? ResponsiveText(
+                            text: 'See the details',
+                            colors: AppColors.sheetFocusColor,
+                            size: 14.0,
+                            onTap: () { 
+                              Navigator.push(
+                                context, 
+                                PageRouteBuilder(pageBuilder: (_, __, ___) => 
+                                  WQIDetailsPage(
+                                    tripID: widget.dataList[0].tripID,
+                                    boatID: widget.selectedboatID,
+                                    boatName: widget.selectedboatName,
+                                    overallWQI: wqiOverall,
+                                    WQIList: WQIList,
+                                    userID: widget.userID,
+                                  )
+                                ), //use MaterialPageRoute for animation
+                              );
+                            }
+                          ): Container(),
+                        ],
+                      ),
+                      Text(
+                        "Last Update: " + widget.formattedDate, 
+                        style: TextStyle(
+                          fontSize: 14.0, 
+                          height: 2.0, 
+                          color: Colors.white.withOpacity(0.9)
+                        ), 
+                      ),
+                    ],
+                  ),
+                ),
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      height: 180,
+                      margin: EdgeInsets.only(top: 10.0, left: 5.0, right: 5.0),
+                      decoration: BoxDecoration(
+                        color: AppColors.btnColor2,
+                        borderRadius: BorderRadius.circular(10.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            spreadRadius: 1,
+                            blurRadius: 1,
+                            offset: const Offset(1, 1)
+                          ),
+                        ]
+                      ),
+                    ),
+                    Positioned(
+                      top: 20,
+                      child: Container(
+                        height: 200,
+                        width: 200,
+                        child: SfRadialGauge(
+                          enableLoadingAnimation: false,
+                          animationDuration: 2500,
+                          axes: <RadialAxis>[
+                            RadialAxis(
+                              radiusFactor: 1,
+                              majorTickStyle: MajorTickStyle(color: AppColors.mainColor),
+                              axisLabelStyle: GaugeTextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold
+                              ),
+                              startAngle: 180,
+                              endAngle: 0,
+                              minimum: 0, 
+                              maximum: 100, 
+                              pointers: <GaugePointer>[
+                                NeedlePointer(
+                                  value: wqiOverall.toDouble(), 
+                                  enableAnimation: true,
+                                  needleEndWidth: 5,
+                                  knobStyle: KnobStyle(
+                                    color: AppColors.mainColor,
+                                    knobRadius: 0.05,
+                                  ),
+                                  needleColor: AppColors.mainColor,
+                                )
+                              ], 
+                              ranges: <GaugeRange>[
+                                GaugeRange(startValue: 0, endValue: 45, color: Colors.red,),
+                                GaugeRange(startValue: 45, endValue: 65, color: Colors.orange,),
+                                GaugeRange(startValue: 65, endValue: 80, color: Colors.yellow,),
+                                GaugeRange(startValue: 80, endValue: 95, color: Colors.lightBlue,),
+                                GaugeRange(startValue: 95, endValue: 100, color: Colors.lightGreen,)
+                              ], 
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 20 + 10 + 100, // 50 for Title, 100 for half of gauge, 10 for extra space, 20 for padding
+                      child: Container(
+                        height: 50,
+                        child: RichText(
+                          textAlign: TextAlign.center,
+                          text: TextSpan(
+                            text: "WQI: ",
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 20.0
+                            ),
+                            children: <TextSpan> [
+                              TextSpan(
+                                text: wqiOverall.toString(),
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 20.0,
+                                  fontWeight: FontWeight.bold
+                                )
+                              ),
+                              _getWQIClass(wqiOverall),
+                            ]
+                          ),
+                        ),
+                      )
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: EdgeInsets.only(top: 10.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _getWQICard("pH", pH, oriPh.toDouble()),
+                      _getWQICard("Temp", temp, oriTemp.toDouble()),
+                      _getWQICard("Turb", turb, oriTurb.toDouble()),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.only(top: 10.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _getWQICard("DO", dissolveOxy, oriDO.toDouble()),
+                      Flexible(child: Container(), flex: 2,)
+                    ],
+                  ),
+                )
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -797,9 +762,10 @@ Flexible _getWQICard(String title, int wqiValue, double originalVal) {
   return Flexible(
     flex: 1,
     child: Container(
-      height: 100,
+      height: 105,
+      //width: 105,
       padding: EdgeInsets.all(10.0),
-      margin: EdgeInsets.only(right: 5.0),
+      margin: EdgeInsets.symmetric(horizontal: 5.0),
       decoration: BoxDecoration(
         color: AppColors.btnColor2,
         borderRadius: BorderRadius.circular(10.0),
@@ -882,32 +848,4 @@ TextSpan _getWQIClass(int wqiOverall) {
       fontWeight: FontWeight.bold
     )
   );
-}
-
-class CircleTabIndicator extends Decoration {
-  final Color color; //Color of circle
-  double radius; //Radius of circle
-  CircleTabIndicator({required this.color, required this.radius});
-
-  @override
-  BoxPainter createBoxPainter([VoidCallback? onChanged]) {
-    return _CirclePainter(color: color, radius: radius);
-  }
-}
-
-class _CirclePainter extends BoxPainter {
-  final Color color; //Color of circle
-  double radius; //Radius of circle
-  _CirclePainter({required this.color, required this.radius});
-
-  @override
-  void paint(Canvas canvas, Offset offset, ImageConfiguration configuration) {
-    Paint _paint = Paint();
-    _paint.color = color;
-    _paint.isAntiAlias = true;
-    //configuration allow to access the details of the element that use this paint
-    final Offset circleOffset = Offset(configuration.size!.width/2 - radius/2, configuration.size!.height - radius);
-
-    canvas.drawCircle(offset+circleOffset, radius, _paint);
-  }
 }
