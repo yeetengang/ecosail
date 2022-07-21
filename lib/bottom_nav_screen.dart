@@ -42,7 +42,7 @@ Future<Gateway> getSensorData(String userID, String boatID) async{
     );
     //print(response.body);
     if (response.statusCode == 200) {
-      print(response.body);
+      //print(response.body);
       return Gateway.fromJson(jsonDecode(response.body));
     } else {
       throw Exception('Failed to load gateway');
@@ -56,8 +56,8 @@ Future<Gateway> getSensorData(String userID, String boatID) async{
 
 Future<WQIData> getWQIData(String userID, String boatID) async {
   
-  print(userID);
-  print(boatID);
+  //print(userID);
+  //print(boatID);
 
   try {
     final response = await http.post(
@@ -257,7 +257,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
 
     Timer.periodic(const Duration(minutes: 2), (t2) {
       if (mounted) {
-        print("refreshing");
+        //print("refreshing");
         setState(() {
           refreshStateWQI = recreateInterpolation(widget.userID, _selectedSailboat, '', 'WQI');
           refreshStatepH = recreateInterpolation(widget.userID, _selectedSailboat, '', 'pH');
@@ -372,7 +372,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
                           }
                         ),
                       ): Container(),
-                  ),
+                    ),
                   ),
                   body: Responsive.isDesktop(context)? Row( //Is Desktop Size then can show the row version, else show pages only as mobile and tablet got bottom nav bar
                     children: [
@@ -439,7 +439,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
                         formattedDate,
                         futureWQIData
                   ),
-                  bottomNavigationBar: !kIsWeb? Container( 
+                  bottomNavigationBar: Responsive.isMobile(context)? Container( 
                     //Show bottom Navigation Bar only if not a web version
                     decoration: BoxDecoration(
                       boxShadow: <BoxShadow>[
@@ -451,7 +451,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
                         ),
                       ]
                     ),
-                    child: BottomNavigationBar(
+                    child: !kIsWeb? BottomNavigationBar(
                       unselectedFontSize: 0,
                       selectedFontSize: 0,
                       //type: BottomNavigationBarType.shifting, //Will shift when click
@@ -478,9 +478,59 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
                           label:"Maps",
                           icon: Icon(Icons.water)),
                       ],
+                    ): Container(
+                      height: 50, 
+                      decoration: BoxDecoration(
+                        boxShadow: <BoxShadow>[
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 2,
+                            spreadRadius: 2,
+                            offset: const Offset(0, -2)
+                          ),
+                        ],
+                        color: AppColors.mainColor
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          IconButton(
+                            color: currentIndex == 0? AppColors.btnColor2: AppColors.btnColor2.withOpacity(0.5),
+                            onPressed: () {
+                              setState(() {
+                                currentIndex = 0;
+                              });
+                            }, icon: Icon(Icons.home)
+                          ),
+                          IconButton(
+                            color: currentIndex == 1? AppColors.btnColor2: AppColors.btnColor2.withOpacity(0.5),
+                            onPressed: () {
+                              setState(() {
+                                currentIndex = 1;
+                              });
+                            }, icon: Icon(Icons.location_pin)
+                          ),
+                          IconButton(
+                            color: currentIndex == 2? AppColors.btnColor2: AppColors.btnColor2.withOpacity(0.5),
+                            onPressed: () {
+                              setState(() {
+                                currentIndex = 2;
+                              });
+                            }, icon: Icon(Icons.bar_chart_rounded)
+                          ),
+                          IconButton(
+                            color: currentIndex == 3? AppColors.btnColor2: AppColors.btnColor2.withOpacity(0.5),
+                            onPressed: () {
+                              setState(() {
+                                currentIndex = 3;
+                              });
+                            }, icon: Icon(Icons.water)
+                          )
+                        ],
+                      ),
                     ),
                   ) : null,
-                  floatingActionButton: !Responsive.isDesktop(context) && !kIsWeb ? FloatingActionButton(
+                  floatingActionButton: !kIsWeb? FloatingActionButton(
                     child: const Icon(
                       Icons.sailing, 
                       color: AppColors.pageBackground,

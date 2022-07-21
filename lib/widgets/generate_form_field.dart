@@ -23,12 +23,12 @@ class GenerateFormField extends StatelessWidget {
       maxLength: maxLength,
       keyboardType: label.contains("CODE")? TextInputType.number: null,
       controller: controller,
-      validator: (value){
-        return value!.length < 6 ? 'At least 6 characters' : null;
-      },
+      /*validator: (value){
+        return value!.length < 8 ? 'At least 8 characters' : null;
+      },*/
       obscureText: showObsure!,
       decoration: InputDecoration(
-        helperText: label.contains("PASSWORD")? "6 Characters with Upper, Lower Cases and Symbols": "",
+        //helperText: label.contains("PASSWORD")? "8 Characters with Upper, Lower Cases, Digits, \nand Symbols !@#\$&*~?": "",
         helperStyle: const TextStyle(
           fontSize: 10.0
         ),

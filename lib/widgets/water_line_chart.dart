@@ -9,18 +9,22 @@ import 'package:flutter/material.dart';
 class WaterLineChart2 extends StatefulWidget {
   final List<double> dataList;
   final List<String> timeList;
+  final List<String> dateTimeList;
   final String title;
   final double reservedSize;
   final int barSize;
+  String? type;
 
   final List<String> xAxisLabels = const [
     'Data 1', 'Data 2', 'Data 3', 'Data 4', 'Data 5', 'Data 6', 'Data 7',
   ];
   
-  const WaterLineChart2({ 
+  WaterLineChart2({ 
     Key? key, 
+    this.type,
     required this.dataList, 
     required this.timeList,
+    required this.dateTimeList,
     required this.title, 
     required this.reservedSize,
     required this.barSize,
@@ -52,10 +56,10 @@ class _WaterLineChart2State extends State<WaterLineChart2> {
                     ),
                   ),
                 ),
-                Container(
+                widget.type == "WQI"? Container(): Container(
                   padding: const EdgeInsets.only(bottom:  15.0, top: 5.0),
-                  child: const Text(
-                    "", // 12 June 2022
+                  child: Text(
+                    widget.dateTimeList.first + " " + widget.dateTimeList.last,
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 14,
@@ -90,7 +94,7 @@ class _WaterLineChart2State extends State<WaterLineChart2> {
     }
 
     return LineChartData(
-      minX: 0,
+      minX: widget.type == "WQI"? 1: 0,
       maxX: widget.barSize.toDouble(), //Number of Days extra to left some space between
       maxY: yMax,
       minY: yMin,

@@ -27,7 +27,6 @@ class _ChartsPageState extends State<ChartsPage> {
   @override
   Widget build(BuildContext context) {
     final Size screenSize = MediaQuery.of(context).size;
-    widget.dataList = widget.dataList.reversed.toList();
 
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
@@ -192,9 +191,9 @@ class _ChartsPageState extends State<ChartsPage> {
   }
 
   WaterBarChart _getBarCharts(String title, List<Data> dataList, int size) {
-    List<double> testWater = [12.17, 11.15, 10.02, 11.21, 13.83, 14.16, 14.30];
     List<double> waterDataList = [];
     List<String> waterDataDate = [];
+    List<String> waterDateTime = [];
     String sensorUnit = '';
     double reservedSize = 30.0;
     double barSize = 8.0;
@@ -212,6 +211,8 @@ class _ChartsPageState extends State<ChartsPage> {
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].temp);
           waterDataDate.add(dataList[i].time);
+          String dateTime = dataList[i].date + " " + dataList[i].time;
+          waterDateTime.add(dateTime);
         }
         break;
       case 'Turbidity':
@@ -219,6 +220,8 @@ class _ChartsPageState extends State<ChartsPage> {
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].turbidity);
           waterDataDate.add(dataList[i].time);
+          String dateTime = dataList[i].date + " " + dataList[i].time;
+          waterDateTime.add(dateTime);
         }
         reservedSize = 45.0;
         break;
@@ -227,6 +230,8 @@ class _ChartsPageState extends State<ChartsPage> {
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].pH);
           waterDataDate.add(dataList[i].time);
+          String dateTime = dataList[i].date + " " + dataList[i].time;
+          waterDateTime.add(dateTime);
         }
         reservedSize = 22.0;
         break;
@@ -235,6 +240,8 @@ class _ChartsPageState extends State<ChartsPage> {
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].eC);
           waterDataDate.add(dataList[i].time);
+          String dateTime = dataList[i].date + " " + dataList[i].time;
+          waterDateTime.add(dateTime);
         }
         reservedSize = 32.0;
         break;
@@ -243,25 +250,31 @@ class _ChartsPageState extends State<ChartsPage> {
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].dO);
           waterDataDate.add(dataList[i].time);
+          String dateTime = dataList[i].date + " " + dataList[i].time;
+          waterDateTime.add(dateTime);
         }
         reservedSize = 30.0;
         break;
       default:
         sensorUnit = '';
     }
+
+    print(waterDataList);
+
     return WaterBarChart(
       dataList: waterDataList,
       dataTime: waterDataDate,
+      dateTimeList: waterDateTime,
       title: title + sensorUnit, 
-      reservedSize: reservedSize, 
+      reservedSize: reservedSize,
       barSize: barSize,
     );
   }
 
   WaterLineChart2 _getLineCharts(String title, List<Data> dataList, int size) {
-    List<double> testWater = [12.17, 11.15, 10.02, 11.21, 13.83, 14.16, 14.30];
     List<double> waterDataList = [];
     List<String> waterDataDate = [];
+    List<String> waterDateTime = [];
     String sensorUnit = '';
     double reservedSize = 30.0;
 
@@ -271,6 +284,8 @@ class _ChartsPageState extends State<ChartsPage> {
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].temp);
           waterDataDate.add(dataList[i].time);
+          String dateTime = dataList[i].date + " " + dataList[i].time;
+          waterDateTime.add(dateTime);
         }
         break;
       case 'Turbidity':
@@ -278,6 +293,8 @@ class _ChartsPageState extends State<ChartsPage> {
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].turbidity);
           waterDataDate.add(dataList[i].time);
+          String dateTime = dataList[i].date + " " + dataList[i].time;
+          waterDateTime.add(dateTime);
         }
         reservedSize = 45.0;
         break;
@@ -286,6 +303,8 @@ class _ChartsPageState extends State<ChartsPage> {
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].pH);
           waterDataDate.add(dataList[i].time);
+          String dateTime = dataList[i].date + " " + dataList[i].time;
+          waterDateTime.add(dateTime);
         }
         reservedSize = 20.0;
         break;
@@ -294,6 +313,8 @@ class _ChartsPageState extends State<ChartsPage> {
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].eC);
           waterDataDate.add(dataList[i].time);
+          String dateTime = dataList[i].date + " " + dataList[i].time;
+          waterDateTime.add(dateTime);
         }
         reservedSize = 34.0;
         break;
@@ -302,6 +323,8 @@ class _ChartsPageState extends State<ChartsPage> {
         for (var i = 0; i < size; i++) { //7 is the number of days
           waterDataList.add(dataList[i].dO);
           waterDataDate.add(dataList[i].time);
+          String dateTime = dataList[i].date + " " + dataList[i].time;
+          waterDateTime.add(dateTime);
         }
         reservedSize = 30.0;
         break;
@@ -311,6 +334,7 @@ class _ChartsPageState extends State<ChartsPage> {
     return WaterLineChart2(
       dataList: waterDataList,
       timeList: waterDataDate, 
+      dateTimeList: waterDateTime,
       title: title + sensorUnit, 
       reservedSize: reservedSize, 
       barSize: size

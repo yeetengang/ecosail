@@ -2,6 +2,7 @@ class WQIData {
   //final int statusCode;
   final List<WaterQualityData> data;
   final String statusCode;
+  final String tripID;
   final int averWQI;
   final int averpH;
   final int averDO;
@@ -24,6 +25,7 @@ class WQIData {
     required this.oriTemp,
     required this.oriTurb,
     required this.oripH,
+    required this.tripID
   });
 
   factory WQIData.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,7 @@ class WQIData {
       oriTemp: json["oriTemp"],
       oriTurb: json["oriTurb"],
       oripH: json["oripH"],
+      tripID: json["tripID"],
       data: parseData(json),
     );
   }
@@ -56,6 +59,7 @@ class WaterQualityData{
   int WQIturb;
   int WQIval;
   String dataTime;
+  String dataDate;
 
   WaterQualityData({
     required this.WQIph,
@@ -64,6 +68,7 @@ class WaterQualityData{
     required this.WQIturb,
     required this.WQIval,
     required this.dataTime,
+    required this.dataDate
   });
 
   factory WaterQualityData.fromJson(Map<String, dynamic> parsedJson) {
@@ -73,7 +78,8 @@ class WaterQualityData{
       WQItemp: parsedJson['WQI temp'],
       WQIturb: parsedJson['WQI turb'],
       WQIval: parsedJson['Overall WQI'],
-      dataTime: parsedJson['time']
+      dataTime: parsedJson['time'],
+      dataDate: parsedJson['date']
     );
   }
 }

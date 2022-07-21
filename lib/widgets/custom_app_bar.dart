@@ -40,7 +40,10 @@ class _CustomAppBarState extends State<CustomAppBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+      padding: EdgeInsets.symmetric(
+        vertical: 0, 
+        horizontal: !(kIsWeb && Responsive.isMobile(context))? 20: 0
+      ),
       decoration: BoxDecoration(
         color: AppColors.mainColor,
         boxShadow: [
@@ -55,16 +58,17 @@ class _CustomAppBarState extends State<CustomAppBar> {
       child: SafeArea(
         child: Row(
           children: [
-            Responsive.isTablet(context) && kIsWeb? IconButton(onPressed: () {
+            (Responsive.isTablet(context) && kIsWeb)? IconButton(onPressed: () {
               //Show navigation drawer menu when it is a web and is tablet size only
               widget.currkey.currentState?.openDrawer();
             }, icon: const Icon(Icons.dehaze), color: Colors.white,) : Container(),
             const SizedBox(width: 10,),
-            AppLargeText(text: "Ecosail"),
-            Expanded(child: Container()),
+            !(kIsWeb && Responsive.isMobile(context))? AppLargeText(text: "Ecosail"): Container(),
+            !(kIsWeb && Responsive.isMobile(context))? Expanded(child: Container()): Container(),
             kIsWeb? DropdownButtonHideUnderline(
               child: widget.dropDownWidget!,
             ): Container(),
+            (kIsWeb && Responsive.isMobile(context))? Expanded(child: Container()): Container(),
             const SizedBox(width: 3,),
             IconButton(
               icon: const Icon(Icons.memory), 
@@ -108,7 +112,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
               },
             ),
           ],
-        ),
+        )
       ),
     );
   }

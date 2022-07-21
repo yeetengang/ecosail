@@ -56,10 +56,26 @@ Future<String> registerUser(String email, String password) async {
   return "";
 }
 
+Future<bool> verifyUserEnabled(String email, String password) async {
+  String status = "Check Email Enabled";
+  final response = await http.post(
+    Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
+    headers: <String, String>{
+      'Accept': 'application/json',
+    },
+    body: jsonEncode(<String, String>{
+      'email': email,
+      'status': status,
+    }),
+  );
+  return jsonDecode(response.body)['enabled'];
+}
+
 Future<bool> verifyUser(String code, String email, String password, String userID) async{
   bool confirmed = false;
   String datetime = DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now());
   String status = "User Register";
+  CognitoUserSession? session;
     
   final userPool = CognitoUserPool(
     'ap-southeast-1_LPPgObixx', 
@@ -67,10 +83,21 @@ Future<bool> verifyUser(String code, String email, String password, String userI
   );
 
   final cognitoUser = CognitoUser(email, userPool);
+  final authDetails = AuthenticationDetails(
+    username: email,
+    password: password,
+  );
 
   try {
     confirmed = await cognitoUser.confirmRegistration(code);
+    
     if (confirmed) {
+      try {
+        session = await cognitoUser.authenticateUser(authDetails);
+        userID = session!.getAccessToken().getSub().toString();
+      } catch(e) {
+        print(e);
+      }
       final response = await http.post(
         Uri.parse('https://k3mejliul2.execute-api.ap-southeast-1.amazonaws.com/ecosail_stage/Ecosail_lambda2'),
         headers: <String, String>{
@@ -91,8 +118,8 @@ Future<bool> verifyUser(String code, String email, String password, String userI
         showToast("Failed to register user! Check internet connection status");
       }
     }
-  } on CognitoClientException {
-    showToast("Field cannot be empty!");
+  } on CognitoClientException catch (e) {
+    //showToast(e.message!);
   }
 
   return confirmed;
@@ -126,6 +153,87 @@ class _RegisterPageState extends State<RegisterPage> {
   bool obscure = true;
   bool showVerification = false;
   bool verifiedEmail = false;
+  bool passLength = false, upperCase = false, lowerCase = false, digits = false, special = false;
+  bool trigger = false;
+
+  void _printLatestValue() {
+    String  patternUpper = r'^(?=.*?[A-Z])';
+    RegExp regExpUpper = RegExp(patternUpper);
+    String  patternLower = r'^(?=.*?[a-z])';
+    RegExp regExpLower = RegExp(patternLower);
+    String  patternDigit = r'^(?=.*?[0-9])';
+    RegExp regExpDigit = RegExp(patternDigit);
+    String  patternSpecial = r'^(?=.*?[\"!,.:;`{}|<>\[\]@\-\/_=#\$&*~\?+%^\(\)\\])';
+    RegExp regExpSpacial = RegExp(patternSpecial);
+
+    setState(() {
+      trigger = true;
+    });
+    if (passwordController.text.length >= 8) {
+      setState(() {
+        passLength = true;
+      });
+    } else if (passwordController.text.length < 8) {
+      setState(() {
+        passLength = false;
+      });
+    }
+
+    if (regExpUpper.hasMatch(passwordController.text)) {
+      setState(() {
+        upperCase = true;
+      });
+    } else if (regExpUpper.hasMatch(passwordController.text) == false) {
+      setState(() {
+        upperCase = false;
+      });
+    }
+
+    if (regExpDigit.hasMatch(passwordController.text)) {
+      setState(() {
+        digits = true;
+      });
+    } else if (regExpDigit.hasMatch(passwordController.text) == false) {
+      setState(() {
+        digits = false;
+      });
+    }
+
+    if (regExpSpacial.hasMatch(passwordController.text)) {
+      setState(() {
+        special = true;
+      });
+    } else if (regExpSpacial.hasMatch(passwordController.text) == false) {
+      setState(() {
+        special = false;
+      });
+    }
+
+    if (regExpLower.hasMatch(passwordController.text)) {
+      setState(() {
+        lowerCase = true;
+      });
+    } else if (regExpLower.hasMatch(passwordController.text)) {
+      setState(() {
+        lowerCase = false;
+      });
+    }
+  }
+
+  /*
+  bool validateStructure(String value){
+    String  pattern = r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~\?+%]).{8,}$';
+    RegExp regExp = RegExp(pattern);
+    return regExp.hasMatch(value);
+  }
+  */
+
+  @override
+  void initState() {
+    super.initState();
+
+    passwordController.addListener(_printLatestValue);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -252,15 +360,111 @@ class _RegisterPageState extends State<RegisterPage> {
                 controller: codeController,
                 maxLength: 6,
               ),
-              !showVerification && !verifiedEmail? GenerateFormField(
-                label: "PASSWORD",
-                controller: passwordController,
-                showObsure: obscure,
-                onPressedIcon: () {
-                  setState(() {
-                    obscure = !obscure;
-                  });
-                },
+              !showVerification && !verifiedEmail? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GenerateFormField(
+                    label: "PASSWORD",
+                    controller: passwordController,
+                    showObsure: obscure,
+                    onPressedIcon: () {
+                      setState(() {
+                        obscure = !obscure;
+                      });
+                    },
+                  ),
+                  RichText(
+                    text: TextSpan(
+                      //text: "Enter the verification code sent to ",
+                      style: TextStyle(
+                        color: Colors.black.withOpacity(0.4),
+                        fontSize: 12.0
+                      ),
+                      children: <TextSpan> [
+                        TextSpan(
+                          text: "8 Characters",
+                          style: TextStyle(
+                            color: passLength? Colors.black.withOpacity(0.5): trigger? Colors.red.withOpacity(0.8): Colors.black.withOpacity(0.5),
+                            height: 1.5,
+                            fontSize: 12.0
+                          )
+                        ),
+                        TextSpan(
+                          text: " with ",
+                          style: TextStyle(
+                            color: Colors.black.withOpacity(0.5),
+                            height: 1.5,
+                            fontSize: 12.0
+                          )
+                        ),
+                        TextSpan(
+                          text: "Upper",
+                          style: TextStyle(
+                            color: upperCase? Colors.black.withOpacity(0.5): trigger? Colors.red.withOpacity(0.8): Colors.black.withOpacity(0.5),
+                            height: 1.5,
+                            fontSize: 12.0
+                          )
+                        ),
+                        TextSpan(
+                          text: ", ",
+                          style: TextStyle(
+                            color: Colors.black.withOpacity(0.5),
+                            height: 1.5,
+                            fontSize: 12.0
+                          )
+                        ),
+                        TextSpan(
+                          text: "Lower",
+                          style: TextStyle(
+                            color: lowerCase? Colors.black.withOpacity(0.5): trigger? Colors.red.withOpacity(0.8): Colors.black.withOpacity(0.5),
+                            height: 1.5,
+                            fontSize: 12.0
+                          )
+                        ),
+                        TextSpan(
+                          text: ", ",
+                          style: TextStyle(
+                            color: Colors.black.withOpacity(0.5),
+                            height: 1.5,
+                            fontSize: 12.0
+                          )
+                        ),
+                        TextSpan(
+                          text: "Digits",
+                          style: TextStyle(
+                            color: digits? Colors.black.withOpacity(0.5): trigger? Colors.red.withOpacity(0.8): Colors.black.withOpacity(0.5),
+                            height: 1.5,
+                            fontSize: 12.0
+                          )
+                        ),
+                        TextSpan(
+                          text: ", and ",
+                          style: TextStyle(
+                            color: Colors.black.withOpacity(0.5),
+                            height: 1.5,
+                            fontSize: 12.0
+                          )
+                        ),
+                        TextSpan(
+                          text: "Special Characters",
+                          style: TextStyle(
+                            color: special? Colors.black.withOpacity(0.5): trigger? Colors.red.withOpacity(0.8): Colors.black.withOpacity(0.5),
+                            height: 1.5,
+                            fontSize: 12.0
+                          )
+                        ),
+                        TextSpan(
+                          text: "\nAcceptable Specials: \"!,.:;`{}|<>[]@-/_=#\$&*~?+%^()\\",
+                          style: TextStyle(
+                            color: Colors.black.withOpacity(0.5),
+                            height: 1.5,
+                            fontSize: 12.0
+                          )
+                        ),
+                      ]
+                    ),
+                  ),
+                ],
               ): Container(),
               !showVerification && !verifiedEmail? ResponsiveButton(
                 onTap: () async {
@@ -268,21 +472,35 @@ class _RegisterPageState extends State<RegisterPage> {
                     showToast("Registering...");
                     if (validateStructure(passwordController.text) && passwordController.text.length >= 6) {
                       String message = await registerUser(emailController.text, passwordController.text);
-                      showToast(message.split(" ")[1]);
+                      //showToast(message.split(" ")[1]);
                       if (message.contains("Successfully")) {
                         userID = message.split(" ")[0];
                         setState(() {
                           showVerification = true;
                           userEmail = emailController.text;
                         });
+                      } else if (message.contains("given email already")) {
+                        bool enabled = await verifyUserEnabled(emailController.text, passwordController.text);
+                        if (enabled) {
+                          showToast("Email already registered");
+                        }
+                        else {
+                          setState(() {
+                            showVerification = true;
+                            userEmail = emailController.text;
+                          });
+                        }
+                      } else {
+                        showToast(message);
                       }
+                      print("register ok");
                     }
                     else {
                       if (!validateStructure(passwordController.text)) {
                         showToast("Current password format is not acceptable");
                       }
-                      if (passwordController.text.length < 6) {
-                        showToast("Password need at least 6 characters!");
+                      if (passwordController.text.length < 8) {
+                        showToast("Password need at least 8 characters!");
                       }
                     }
                   } else {
@@ -320,6 +538,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                 ),
                 onTap: () async{
+                  showToast("Verifiying...");
                   bool status = await verifyUser(codeController.text, emailController.text, passwordController.text, userID);
                   if (status) {
                     // If verified
@@ -360,7 +579,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   bool validateStructure(String value){
-    String  pattern = r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,}$';
+    String  pattern = r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[\"!,.:;`{}|<>\[\]@\-\/_=#\$&*~\?+%^\(\)\\]).{8,}$';
     RegExp regExp = RegExp(pattern);
     return regExp.hasMatch(value);
   }

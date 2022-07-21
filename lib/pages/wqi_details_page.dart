@@ -9,6 +9,7 @@ import 'package:ecosail/widgets/app_large_text.dart';
 import 'package:ecosail/widgets/water_line_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 
@@ -85,10 +86,10 @@ class _WQIDetailsPageState extends State<WQIDetailsPage> {
   void initState() {
     super.initState();
     interpolationData = getWQISpatialImage(widget.userID, widget.boatID, 20, 'WQI', widget.tripID);
-    
+    print("haha");
     Timer.periodic(const Duration(seconds: 65), (t) {
+      print("refreshing details");
       if (mounted) {
-        print("refreshing...");
         setState(() {
           interpolationData = getWQISpatialImage(widget.userID, widget.boatID, 20, 'WQI', widget.tripID);
         });
@@ -139,7 +140,8 @@ class _WQIDetailsPageState extends State<WQIDetailsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Boat Name: ' + widget.boatName + '\nBoat ID: ' + widget.boatID, style: const TextStyle(height: 1.3),),
-                  Text('Num. Sampling Data: ' + widget.WQIList.length.toString() + '\nCollection Date: ' + widget.WQIList[0].dataTime, style: const TextStyle(height: 1.3),),
+                  Text('Trip ID: ' + widget.tripID, style: const TextStyle(height: 1.3),),
+                  Text('Num. Sampling Data: ' + widget.WQIList.length.toString() + '\nCollection Date: ' + widget.WQIList[0].dataDate + ' ' + widget.WQIList[0].dataTime + " - " + widget.WQIList.last.dataTime, style: const TextStyle(height: 1.3),),
                 ],
               ),
             ),
@@ -285,10 +287,8 @@ class _WQIDetailsPageState extends State<WQIDetailsPage> {
                 longitudeCenter = (snapshot.data!['longitude_start'] + snapshot.data!['longitude_end']) / 2;
                 Uint8List bytesTest = const Base64Codec().decode(snapshot.data!['interpolation_image']);
 
-                latitudeCenter = latitudeCenter;
-
-                _markers.clear();
-                _markers.add(
+                //_markers.clear();
+                /*_markers.add(
                   DragMarker(
                     point: LatLng(latitudeCenter, longitudeCenter),
                     width: 80.0,
@@ -307,7 +307,7 @@ class _WQIDetailsPageState extends State<WQIDetailsPage> {
                     }, //The Lat and Long when drags
                     updateMapNearEdge: false,
                   ),
-                );
+                );*/
 
                 return Stack(
                   alignment: Alignment.center,
@@ -412,18 +412,43 @@ WaterLineChart2 _getLineCharts(List<WaterQualityData> WQIList, int size) {
     List<double> WQIDataList = [];
     List<String> dataTime = [];
     double reservedSize = 30.0;
+    DateTime startDateTime = DateTime.now();
+    int sum = 0;
+    int val = 0;
 
     for (var i = 0; i < size; i++) { //7 is the number of days
-      WQIDataList.add(WQIList[i].WQIval.toDouble());
-      dataTime.add(WQIList[i].dataTime);
+      String dateTime = WQIList[i].dataDate + " " + WQIList[i].dataTime;
+      //print(dateTime);
+      DateTime currDateTime = new DateFormat("dd/MM/yyyy hh:mm:ss").parse(dateTime);
+      if (i == 0) {
+        startDateTime = currDateTime;
+        
+      }
+      print("start: " + startDateTime.toString());
+      print("Curr: " + currDateTime.toString());
+      int diffInSeconds = currDateTime.difference(startDateTime).inSeconds;
+      print("Diff: " + diffInSeconds.toString());
+      val = val + 1;
+      sum = sum + WQIList[i].WQIval;
+      if ((diffInSeconds >= 120) || i == size - 1) {
+        double aver = sum / val;
+        WQIDataList.add(aver.roundToDouble());
+        startDateTime = currDateTime;
+        String time = currDateTime.toString().split(" ")[1].split(".")[0];
+        dataTime.add(time);
+      }
+      //WQIDataList.add(WQIList[i].WQIval.toDouble());
+      //dataTime.add(WQIList[i].dataTime);
     }
 
     return WaterLineChart2(
       dataList: WQIDataList,
       timeList: dataTime, 
+      dateTimeList: dataTime,
       title: "", 
       reservedSize: reservedSize, 
-      barSize: size
+      barSize: WQIDataList.length,
+      type: "WQI"
     );
   }
 
@@ -431,7 +456,7 @@ List<Widget> _getColorBarLabel(String parameter) {
   List<Widget> listLabel = [];
   switch (parameter) {
     case "WQI":
-      listLabel = [Text("0"),Text("45"),Text("65"),Text("80"),Text("95"),Text("100")];
+      listLabel = [Text("0"),Text("31"),Text("51"),Text("76"),Text("92"),Text("100")];
       break;
     case "pH":
       listLabel = [Text("0.0"),Text("5.0"),Text("5.5"),Text("9.5"),Text("10.0")];
@@ -468,19 +493,19 @@ String _getWQIClass(int wqiOverall) {
   String classNumber = "";
   String classStatus = "";
 
-  if (wqiOverall <= 100 && wqiOverall >= 95) {
+  if (wqiOverall <= 100 && wqiOverall >= 92) {
     classNumber = 1.toString();
     classStatus = "Excellent";
-  } else if (wqiOverall <= 94 && wqiOverall >= 80) {
+  } else if (wqiOverall < 92 && wqiOverall >= 76) {
     classNumber = 2.toString();
     classStatus = "Good";
-  } else if (wqiOverall <= 79 && wqiOverall >= 65) {
+  } else if (wqiOverall < 76 && wqiOverall >= 51) {
     classNumber = 3.toString();
     classStatus = "Fair";
-  } else if (wqiOverall <= 65 && wqiOverall >= 45) {
+  } else if (wqiOverall < 51 && wqiOverall >= 31) {
     classNumber = 4.toString();
     classStatus = "Marginal";
-  } else {
+  } else if (wqiOverall < 31 && wqiOverall >= 0.0){
     classNumber = 5.toString();
     classStatus = "Poor";
   }

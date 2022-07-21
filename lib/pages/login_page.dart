@@ -207,14 +207,14 @@ class _LoginPageState extends State<LoginPage>{
             ResponsiveButton(
               onTap: () async {
 
-                emailController.text = "yeetengang@gmail.com";
-                passwordController.text = "12345Ayt@601";
+                //emailController.text = "yeetengang@gmail.com";
+                //passwordController.text = "12345Ayt@601";
 
                 if (emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
                   showToast("Logging In...");
 
-                  //String userID = await userlogin(emailController.text, passwordController.text);
-                  String userID = "a65259f2-e752-4a9d-8470-78a02e6cd533"; // Later change back to dynamic
+                  String userID = await userlogin(emailController.text, passwordController.text);
+                  //String userID = "a65259f2-e752-4a9d-8470-78a02e6cd533"; // Later change back to dynamic
                   if (userID!="0"){
                     Navigator.pop(context);
                     Navigator.push(
@@ -222,7 +222,7 @@ class _LoginPageState extends State<LoginPage>{
                       PageRouteBuilder(pageBuilder: (_, __, ___) => BottomNavScreen(userID: userID, userEmail: emailController.text,)), //use MaterialPageRoute for animation
                     );
                   } else {
-                    showToast("User does not exist!");
+                    showToast("User does not exist or password incorrect!");
                   }
                   print(userID);
                 } else {

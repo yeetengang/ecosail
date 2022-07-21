@@ -36,7 +36,8 @@ Widget getPages(
     case 1:
       return LocationPage(dataList: datalist, selectedboatID: _selectedSailboat, userID: userID);
     case 2:
-      return ChartsPage(dataList: datalist);
+      List<Data> reversedList = datalist.reversed.toList();
+      return ChartsPage(dataList: reversedList);
     case 3:
       //return MapsPage(generateMaps: generateMaps, interpolationData: interpolationData,); //Avoid repeatly decode so that the image won't flash
       return MapsPage(generateMaps: generateMaps, userID: userID, selectedSailboat: _selectedSailboat,);

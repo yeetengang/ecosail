@@ -9,7 +9,7 @@ import 'package:ecosail/widgets/responsive_btn.dart';
 import 'package:flutter/material.dart';
 
 Future<bool> updateUserPassword(String email, String oldPassword, String newPassword) async {
-
+  
   final userPool = CognitoUserPool(
     'ap-southeast-1_LPPgObixx', 
     '2fm8sfscl0uoah7eac3r7slabe'
@@ -54,6 +54,79 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   final newPasswordController = TextEditingController();
   bool obscure = true;
   bool obscure2 = true;
+  bool passLength = false, upperCase = false, lowerCase = false, digits = false, special = false;
+  bool trigger = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    newPasswordController.addListener(_printLatestValue);
+  }
+
+  void _printLatestValue() {
+    String  patternUpper = r'^(?=.*?[A-Z])';
+    RegExp regExpUpper = RegExp(patternUpper);
+    String  patternLower = r'^(?=.*?[a-z])';
+    RegExp regExpLower = RegExp(patternLower);
+    String  patternDigit = r'^(?=.*?[0-9])';
+    RegExp regExpDigit = RegExp(patternDigit);
+    String  patternSpecial = r'^(?=.*?[\"!,.:;`{}|<>\[\]@\-\/_=#\$&*~\?+%^\(\)\\])';
+    RegExp regExpSpacial = RegExp(patternSpecial);
+
+    setState(() {
+      trigger = true;
+    });
+    if (newPasswordController.text.length >= 8) {
+      setState(() {
+        passLength = true;
+      });
+    } else if (newPasswordController.text.length < 8) {
+      setState(() {
+        passLength = false;
+      });
+    }
+
+    if (regExpUpper.hasMatch(newPasswordController.text)) {
+      setState(() {
+        upperCase = true;
+      });
+    } else if (regExpUpper.hasMatch(newPasswordController.text) == false) {
+      setState(() {
+        upperCase = false;
+      });
+    }
+
+    if (regExpDigit.hasMatch(newPasswordController.text)) {
+      setState(() {
+        digits = true;
+      });
+    } else if (regExpDigit.hasMatch(newPasswordController.text) == false) {
+      setState(() {
+        digits = false;
+      });
+    }
+
+    if (regExpSpacial.hasMatch(newPasswordController.text)) {
+      setState(() {
+        special = true;
+      });
+    } else if (regExpSpacial.hasMatch(newPasswordController.text) == false) {
+      setState(() {
+        special = false;
+      });
+    }
+
+    if (regExpLower.hasMatch(newPasswordController.text)) {
+      setState(() {
+        lowerCase = true;
+      });
+    } else if (regExpLower.hasMatch(newPasswordController.text)) {
+      setState(() {
+        lowerCase = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -116,15 +189,111 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                   },
                 ),
                 const SizedBox(height: 10.0,),
-                GenerateFormField(
-                  label: "NEW PASSWORD",
-                  controller: newPasswordController,
-                  showObsure: obscure2,
-                  onPressedIcon: () {
-                    setState(() {
-                      obscure2 = !obscure2;
-                    });
-                  },
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    GenerateFormField(
+                      label: "NEW PASSWORD",
+                      controller: newPasswordController,
+                      showObsure: obscure,
+                      onPressedIcon: () {
+                        setState(() {
+                          obscure = !obscure;
+                        });
+                      },
+                    ),
+                    RichText(
+                      text: TextSpan(
+                        //text: "Enter the verification code sent to ",
+                        style: TextStyle(
+                          color: Colors.black.withOpacity(0.4),
+                          fontSize: 12.0
+                        ),
+                        children: <TextSpan> [
+                          TextSpan(
+                            text: "8 Characters",
+                            style: TextStyle(
+                              color: passLength? Colors.black.withOpacity(0.5): trigger? Colors.red.withOpacity(0.8): Colors.black.withOpacity(0.5),
+                              height: 1.5,
+                              fontSize: 12.0
+                            )
+                          ),
+                          TextSpan(
+                            text: " with ",
+                            style: TextStyle(
+                              color: Colors.black.withOpacity(0.5),
+                              height: 1.5,
+                              fontSize: 12.0
+                            )
+                          ),
+                          TextSpan(
+                            text: "Upper",
+                            style: TextStyle(
+                              color: upperCase? Colors.black.withOpacity(0.5): trigger? Colors.red.withOpacity(0.8): Colors.black.withOpacity(0.5),
+                              height: 1.5,
+                              fontSize: 12.0
+                            )
+                          ),
+                          TextSpan(
+                            text: ", ",
+                            style: TextStyle(
+                              color: Colors.black.withOpacity(0.5),
+                              height: 1.5,
+                              fontSize: 12.0
+                            )
+                          ),
+                          TextSpan(
+                            text: "Lower",
+                            style: TextStyle(
+                              color: lowerCase? Colors.black.withOpacity(0.5): trigger? Colors.red.withOpacity(0.8): Colors.black.withOpacity(0.5),
+                              height: 1.5,
+                              fontSize: 12.0
+                            )
+                          ),
+                          TextSpan(
+                            text: ", ",
+                            style: TextStyle(
+                              color: Colors.black.withOpacity(0.5),
+                              height: 1.5,
+                              fontSize: 12.0
+                            )
+                          ),
+                          TextSpan(
+                            text: "Digits",
+                            style: TextStyle(
+                              color: digits? Colors.black.withOpacity(0.5): trigger? Colors.red.withOpacity(0.8): Colors.black.withOpacity(0.5),
+                              height: 1.5,
+                              fontSize: 12.0
+                            )
+                          ),
+                          TextSpan(
+                            text: ", and ",
+                            style: TextStyle(
+                              color: Colors.black.withOpacity(0.5),
+                              height: 1.5,
+                              fontSize: 12.0
+                            )
+                          ),
+                          TextSpan(
+                            text: "Special Characters",
+                            style: TextStyle(
+                              color: special? Colors.black.withOpacity(0.5): trigger? Colors.red.withOpacity(0.8): Colors.black.withOpacity(0.5),
+                              height: 1.5,
+                              fontSize: 12.0
+                            )
+                          ),
+                          TextSpan(
+                            text: "\nAcceptable Specials: \"!,.:;`{}|<>[]@-/_=#\$&*~?+%^()\\",
+                            style: TextStyle(
+                              color: Colors.black.withOpacity(0.5),
+                              height: 1.5,
+                              fontSize: 12.0
+                            )
+                          ),
+                        ]
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 10.0,),
                 ResponsiveButton(
@@ -145,8 +314,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                         if (!validateStructure(newPasswordController.text)) {
                           showToast("New password format is not acceptable");
                         }
-                        if (newPasswordController.text.length < 6) {
-                          showToast("Password need at least 6 characters!");
+                        if (newPasswordController.text.length < 8) {
+                          showToast("Password need at least 8 characters!");
                         }
                       }
                     } else {
@@ -177,7 +346,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 }
 
 bool validateStructure(String value){
-  String  pattern = r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,}$';
+  String  pattern = r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[\"!,.:;`{}|<>\[\]@\-\/_=#\$&*~\?+%^\(\)\\]).{8,}$';
   RegExp regExp = RegExp(pattern);
   return regExp.hasMatch(value);
 }

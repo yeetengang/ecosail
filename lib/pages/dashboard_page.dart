@@ -43,6 +43,7 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> with TickerProviderStateMixin{
   bool sensorActive = false;
   int dissolveOxy = 0, pH = 0, temp = 0, turb = 0, wqiOverall = 0;
+  String tripID = "";
   double oriPh = 0, oriTemp = 0, oriTurb = 0, oriDO = 0;
   CarouselController sliderController = CarouselController();
   int activeIndex = 0;
@@ -64,18 +65,22 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
     TabController _tabController = TabController(length: 3, vsync: this, initialIndex: activeIndex);
 
     widget.futureWQIData.then((value) {
-      setState(() {
-        dissolveOxy = value.averDO;
-        pH = value.averpH;
-        temp = value.averTemp;
-        turb = value.averTurb;
-        wqiOverall = value.averWQI;
-        oriDO = value.oriDO;
-        oriPh = value.oripH;
-        oriTemp = value.oriTemp;
-        oriTurb = value.oriTurb;
-        WQIList = value.data;
-      });
+      //print("refresh WQI");
+      if (_getSensorActive(widget.dataList[0].date, widget.dataList[0].time) && value.tripID == widget.dataList[0].tripID) {
+          setState(() {
+            tripID = value.tripID;
+            dissolveOxy = value.averDO;
+            pH = value.averpH;
+            temp = value.averTemp;
+            turb = value.averTurb;
+            wqiOverall = value.averWQI;
+            oriDO = value.oriDO;
+            oriPh = value.oripH;
+            oriTemp = value.oriTemp;
+            oriTurb = value.oriTurb;
+            WQIList = value.data;
+          });
+      }
     });
 
     return Scaffold(
@@ -114,7 +119,7 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: !((kIsWeb || Responsive.isTablet(context)) && screenHeight >= 400.0)? TabBar( 
+              child: Responsive.isMobile(context) || (kIsWeb && Responsive.isTablet(context))? TabBar( 
                 //Show tab bar when is Mobile / is Tablet / is Horizontal Mobile version
                 labelPadding: const EdgeInsets.only(left: 20, right: 20,),
                 controller: _tabController,
@@ -142,7 +147,7 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
             alignment: Alignment.center,
             width: screenWidth,
             height: Responsive.isDesktop(context)? null: 500.0,
-            child: !kIsWeb && (Responsive.isMobile(context) || screenHeight < 400.0)? CarouselSlider( 
+            child: Responsive.isMobile(context) || Responsive.isTablet(context)? CarouselSlider( 
               //When not a web version and is a mobile or horizontal mobile (Horizontal Mobile height will < 400.0)
               carouselController: sliderController,
               options: CarouselOptions(
@@ -193,8 +198,7 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
                   ],
                 ),
               ],
-            ): Responsive.isTablet(context) && kIsWeb? _buildTabletVersion(screenWidth)
-            : Container( //When is a web version
+            ): Container( //When is a web version
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
               child: Column(
                 children: [
@@ -241,8 +245,11 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
               ),
             ),
           ),
-          (kIsWeb || Responsive.isTablet(context)) && screenHeight >= 400.0? _buildWQIPage(screenWidth): Container(),
-          (kIsWeb || Responsive.isTablet(context)) && screenHeight >= 400.0? Container(
+          !Responsive.isMobile(context) && !Responsive.isTablet(context)? Container(
+            padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 5.0),
+            child: _buildWQIPage(screenWidth),
+          ): Container(),
+          !Responsive.isMobile(context) && !Responsive.isTablet(context)? Container(
             padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 5.0),
             child: Column(
               children: <Widget>[
@@ -289,12 +296,12 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
 
   Container _buildWQIPage(double screenWidth) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 5.0),
+      padding: const EdgeInsets.symmetric(horizontal: 10.0,),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: double.infinity,
+            //width: double.infinity,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -395,11 +402,11 @@ class _DashboardPageState extends State<DashboardPage> with TickerProviderStateM
                                 )
                               ], 
                               ranges: <GaugeRange>[
-                                GaugeRange(startValue: 0, endValue: 45, color: Colors.red,),
-                                GaugeRange(startValue: 45, endValue: 65, color: Colors.orange,),
-                                GaugeRange(startValue: 65, endValue: 80, color: Colors.yellow,),
-                                GaugeRange(startValue: 80, endValue: 95, color: Colors.lightBlue,),
-                                GaugeRange(startValue: 95, endValue: 100, color: Colors.lightGreen,)
+                                GaugeRange(startValue: 0, endValue: 31, color: Colors.red,),
+                                GaugeRange(startValue: 31, endValue: 51.9, color: Colors.orange,),
+                                GaugeRange(startValue: 51.9, endValue: 76.5, color: Colors.yellow,),
+                                GaugeRange(startValue: 76.5, endValue: 92.7, color: Colors.lightBlue,),
+                                GaugeRange(startValue: 92.7, endValue: 100, color: Colors.lightGreen,)
                               ], 
                             ),
                           ],
@@ -811,7 +818,8 @@ Flexible _getWQICard(String title, int wqiValue, double originalVal) {
             ),
           ),
           Text(
-            originalVal.toString() + " " + sensorUnit
+            originalVal.toString() + " " + sensorUnit,
+            style: TextStyle(fontSize: 12.0),
           ),
         ],
       ),
@@ -823,19 +831,19 @@ TextSpan _getWQIClass(int wqiOverall) {
   String classNumber = "";
   String classStatus = "";
 
-  if (wqiOverall <= 100 && wqiOverall >= 95) {
+  if (wqiOverall <= 100 && wqiOverall >= 92) {
     classNumber = 1.toString();
     classStatus = "Excellent";
-  } else if (wqiOverall <= 94 && wqiOverall >= 80) {
+  } else if (wqiOverall < 92 && wqiOverall >= 76) {
     classNumber = 2.toString();
     classStatus = "Good";
-  } else if (wqiOverall <= 79 && wqiOverall >= 65) {
+  } else if (wqiOverall < 76 && wqiOverall >= 51) {
     classNumber = 3.toString();
     classStatus = "Fair";
-  } else if (wqiOverall <= 65 && wqiOverall >= 45) {
+  } else if (wqiOverall < 51 && wqiOverall >= 31) {
     classNumber = 4.toString();
     classStatus = "Marginal";
-  } else {
+  } else if (wqiOverall < 31 && wqiOverall >= 0.0){
     classNumber = 5.toString();
     classStatus = "Poor";
   }

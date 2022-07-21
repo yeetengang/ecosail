@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 class WaterBarChart extends StatefulWidget {
   final List<double> dataList;
   final List<String> dataTime;
+  final List<String> dateTimeList;
   final String title;
   final double reservedSize;
   final double barSize;
@@ -13,6 +14,7 @@ class WaterBarChart extends StatefulWidget {
   const WaterBarChart({
     required this.dataList, 
     required this.dataTime,
+    required this.dateTimeList,
     required this.title,
     required this.reservedSize,
     required this.barSize,
@@ -52,8 +54,8 @@ class WaterBarChartState extends State<WaterBarChart> {
                 ),
                 Container(
                   padding: const EdgeInsets.only(bottom:  15.0, top: 5.0),
-                  child: const Text(
-                    "12 June 2022",
+                  child: Text(
+                    widget.dateTimeList[0] + " - " + widget.dateTimeList.last,
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 14,
