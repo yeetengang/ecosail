@@ -14,7 +14,7 @@ This application will dislay the real-time collected water quality data, predict
 
 User also can specify the coverage of the boat, perform sensor calibration, and monitor real-time sailboat location through this application.
 
-<img src="https://github.com/yeetengang/ecosail/blob/master/images/sailboat%20on%20ocean.PNG|height=100px?raw=true" height="200" />
+<img src="https://github.com/yeetengang/ecosail/blob/master/images/sailboat%20on%20ocean.PNG" height="200" />
 
 ![setup](https://github.com/yeetengang/ecosail/blob/master/images/water.png?raw=true)
 
