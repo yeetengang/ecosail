@@ -1,4 +1,4 @@
-# Ecosail | Web and Mobile
+# Ecosail | Web and Mobile Application
 
 This is the user application for Ecosail system. It support Android mobile and Chrome browser. 
 
@@ -14,5 +14,7 @@ This application will dislay the real-time collected water quality data, predict
 
 User also can specify the coverage of the boat, perform sensor calibration, and monitor real-time sailboat location through this application.
 
+![alt text](https://github.com/yeetengang/ecosail/blob/master/images/sailboat%20on%20ocean.PNG?raw=true)
 
+![alt text](https://github.com/yeetengang/ecosail/blob/master/images/water.png?raw=true)
 
