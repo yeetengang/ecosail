@@ -1,16 +1,16 @@
-# ecosail
+# Ecosail | Web and Mobile
 
-A new Flutter project.
+This is the user application for Ecosail system. It support Android mobile and Chrome browser. 
 
-## Getting Started
+## About
 
-This project is a starting point for a Flutter application.
+Ecosail is an Autonomous Sailboat used for ocean environment monitoring. Water quality data such as Dissolved Oxygen, pH, Temperature, Turbidity, and Electrical Conductivity level will be collected by the sensors installed on the sailboat when navigate around the coastal area.
 
-A few resources to get you started if this is your first Flutter project:
+Data analysis on collected data to estimate water quality index (WQI) from limited number of data. Besides, spatial analysis is performed to estimate the surrounding water status according to the data collected along the navigation path. 
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+This application will dislay the real-time collected water quality data, predicted WQI value, interpolation map for monitored areas, and notifications generated upon detection of abnormal water status. 
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+User also can specify the coverage of the boat, perform sensor calibration, and monitor real-time sailboat location through this application.
+
+
+
