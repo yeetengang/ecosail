@@ -16,5 +16,4 @@ User also can specify the coverage of the boat, perform sensor calibration, and 
 
 <img src="https://github.com/yeetengang/ecosail/blob/master/images/sailboat%20on%20ocean.PNG" height="250" />
 
-<img src="https://github.com/yeetengang/ecosail/blob/master/images/water.png" height="250" />
 
