@@ -2,7 +2,7 @@
 
 This is the user application for Ecosail system. It is developed using Flutter Framework and support Android mobile and Chrome browser. 
 
-![alt text](https://github.com/yeetengang/ecosail/blob/master/images/ecosail%20application%20overview-01.png?raw=true)
+![ecosail_img](https://github.com/yeetengang/ecosail/blob/master/images/ecosail%20application%20overview-01.png?raw=true)
 
 ## About
 
